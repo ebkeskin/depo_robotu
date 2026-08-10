@@ -1,0 +1,1400 @@
+{
+  "raf_konumlari": {
+    "A1": {
+      "x": -4.0,
+      "y": 4.0,
+      "yon": "guney"
+    },
+    "A2": {
+      "x": 0.0,
+      "y": 4.0,
+      "yon": "guney"
+    },
+    "A3": {
+      "x": 4.0,
+      "y": 4.0,
+      "yon": "guney"
+    },
+    "B1": {
+      "x": -4.0,
+      "y": 0.0,
+      "yon": "guney"
+    },
+    "B2": {
+      "x": 0.0,
+      "y": 0.0,
+      "yon": "guney"
+    },
+    "B3": {
+      "x": 4.0,
+      "y": 0.0,
+      "yon": "guney"
+    },
+    "C1": {
+      "x": -4.0,
+      "y": -4.0,
+      "yon": "kuzey"
+    },
+    "C2": {
+      "x": 0.0,
+      "y": -4.0,
+      "yon": "kuzey"
+    },
+    "C3": {
+      "x": 4.0,
+      "y": -4.0,
+      "yon": "kuzey"
+    }
+  },
+  "kat_yuzeyleri": [
+    0.48,
+    1.03,
+    1.53
+  ],
+  "kutular": [
+    {
+      "id": "kutu_A1_k1_p1",
+      "adres": "A1-kat1-poz1",
+      "raf": "A1",
+      "kat": 1,
+      "pozisyon": 1,
+      "renk": "sari",
+      "boyut": "buyuk",
+      "konum": {
+        "x": -5.075,
+        "y": 3.9,
+        "z": 0.69
+      }
+    },
+    {
+      "id": "kutu_A1_k1_p2",
+      "adres": "A1-kat1-poz2",
+      "raf": "A1",
+      "kat": 1,
+      "pozisyon": 2,
+      "renk": "kirmizi",
+      "boyut": "buyuk",
+      "konum": {
+        "x": -4.327,
+        "y": 3.9,
+        "z": 0.69
+      }
+    },
+    {
+      "id": "kutu_A1_k1_p3",
+      "adres": "A1-kat1-poz3",
+      "raf": "A1",
+      "kat": 1,
+      "pozisyon": 3,
+      "renk": "kirmizi",
+      "boyut": "kucuk",
+      "konum": {
+        "x": -3.807,
+        "y": 3.775,
+        "z": 0.62
+      }
+    },
+    {
+      "id": "kutu_A1_k1_p4",
+      "adres": "A1-kat1-poz4",
+      "raf": "A1",
+      "kat": 1,
+      "pozisyon": 4,
+      "renk": "karton",
+      "boyut": "kucuk",
+      "konum": {
+        "x": -2.8,
+        "y": 3.775,
+        "z": 0.62
+      }
+    },
+    {
+      "id": "kutu_A1_k2_p1",
+      "adres": "A1-kat2-poz1",
+      "raf": "A1",
+      "kat": 2,
+      "pozisyon": 1,
+      "renk": "karton",
+      "boyut": "kucuk",
+      "konum": {
+        "x": -5.2,
+        "y": 3.775,
+        "z": 1.17
+      }
+    },
+    {
+      "id": "kutu_A1_k2_p2",
+      "adres": "A1-kat2-poz2",
+      "raf": "A1",
+      "kat": 2,
+      "pozisyon": 2,
+      "renk": "yesil",
+      "boyut": "buyuk",
+      "konum": {
+        "x": -4.616,
+        "y": 3.9,
+        "z": 1.24
+      }
+    },
+    {
+      "id": "kutu_A1_k2_p3",
+      "adres": "A1-kat2-poz3",
+      "raf": "A1",
+      "kat": 2,
+      "pozisyon": 3,
+      "renk": "mavi",
+      "boyut": "orta",
+      "konum": {
+        "x": -3.991,
+        "y": 3.85,
+        "z": 1.205
+      }
+    },
+    {
+      "id": "kutu_A1_k2_p4",
+      "adres": "A1-kat2-poz4",
+      "raf": "A1",
+      "kat": 2,
+      "pozisyon": 4,
+      "renk": "sari",
+      "boyut": "buyuk",
+      "konum": {
+        "x": -2.925,
+        "y": 3.9,
+        "z": 1.24
+      }
+    },
+    {
+      "id": "kutu_A1_k3_p1",
+      "adres": "A1-kat3-poz1",
+      "raf": "A1",
+      "kat": 3,
+      "pozisyon": 1,
+      "renk": "karton",
+      "boyut": "orta",
+      "konum": {
+        "x": -5.14,
+        "y": 3.85,
+        "z": 1.705
+      }
+    },
+    {
+      "id": "kutu_A1_k3_p2",
+      "adres": "A1-kat3-poz2",
+      "raf": "A1",
+      "kat": 3,
+      "pozisyon": 2,
+      "renk": "mavi",
+      "boyut": "kucuk",
+      "konum": {
+        "x": -3.546,
+        "y": 3.775,
+        "z": 1.67
+      }
+    },
+    {
+      "id": "kutu_A1_k3_p3",
+      "adres": "A1-kat3-poz3",
+      "raf": "A1",
+      "kat": 3,
+      "pozisyon": 3,
+      "renk": "karton",
+      "boyut": "buyuk",
+      "konum": {
+        "x": -2.925,
+        "y": 3.9,
+        "z": 1.74
+      }
+    },
+    {
+      "id": "kutu_A2_k1_p1",
+      "adres": "A2-kat1-poz1",
+      "raf": "A2",
+      "kat": 1,
+      "pozisyon": 1,
+      "renk": "karton",
+      "boyut": "kucuk",
+      "konum": {
+        "x": -1.2,
+        "y": 3.775,
+        "z": 0.62
+      }
+    },
+    {
+      "id": "kutu_A2_k1_p2",
+      "adres": "A2-kat1-poz2",
+      "raf": "A2",
+      "kat": 1,
+      "pozisyon": 2,
+      "renk": "karton",
+      "boyut": "buyuk",
+      "konum": {
+        "x": -0.687,
+        "y": 3.9,
+        "z": 0.69
+      }
+    },
+    {
+      "id": "kutu_A2_k1_p3",
+      "adres": "A2-kat1-poz3",
+      "raf": "A2",
+      "kat": 1,
+      "pozisyon": 3,
+      "renk": "karton",
+      "boyut": "buyuk",
+      "konum": {
+        "x": -0.077,
+        "y": 3.9,
+        "z": 0.69
+      }
+    },
+    {
+      "id": "kutu_A2_k1_p4",
+      "adres": "A2-kat1-poz4",
+      "raf": "A2",
+      "kat": 1,
+      "pozisyon": 4,
+      "renk": "mavi",
+      "boyut": "buyuk",
+      "konum": {
+        "x": 1.075,
+        "y": 3.9,
+        "z": 0.69
+      }
+    },
+    {
+      "id": "kutu_A2_k2_p1",
+      "adres": "A2-kat2-poz1",
+      "raf": "A2",
+      "kat": 2,
+      "pozisyon": 1,
+      "renk": "sari",
+      "boyut": "orta",
+      "konum": {
+        "x": -1.14,
+        "y": 3.85,
+        "z": 1.205
+      }
+    },
+    {
+      "id": "kutu_A2_k2_p2",
+      "adres": "A2-kat2-poz2",
+      "raf": "A2",
+      "kat": 2,
+      "pozisyon": 2,
+      "renk": "yesil",
+      "boyut": "kucuk",
+      "konum": {
+        "x": 0.243,
+        "y": 3.775,
+        "z": 1.17
+      }
+    },
+    {
+      "id": "kutu_A2_k2_p3",
+      "adres": "A2-kat2-poz3",
+      "raf": "A2",
+      "kat": 2,
+      "pozisyon": 3,
+      "renk": "karton",
+      "boyut": "kucuk",
+      "konum": {
+        "x": 0.72,
+        "y": 3.775,
+        "z": 1.17
+      }
+    },
+    {
+      "id": "kutu_A2_k2_p4",
+      "adres": "A2-kat2-poz4",
+      "raf": "A2",
+      "kat": 2,
+      "pozisyon": 4,
+      "renk": "karton",
+      "boyut": "kucuk",
+      "konum": {
+        "x": 1.2,
+        "y": 3.775,
+        "z": 1.17
+      }
+    },
+    {
+      "id": "kutu_A2_k3_p1",
+      "adres": "A2-kat3-poz1",
+      "raf": "A2",
+      "kat": 3,
+      "pozisyon": 1,
+      "renk": "mavi",
+      "boyut": "buyuk",
+      "konum": {
+        "x": -1.075,
+        "y": 3.9,
+        "z": 1.74
+      }
+    },
+    {
+      "id": "kutu_A2_k3_p2",
+      "adres": "A2-kat3-poz2",
+      "raf": "A2",
+      "kat": 3,
+      "pozisyon": 2,
+      "renk": "sari",
+      "boyut": "orta",
+      "konum": {
+        "x": 1.14,
+        "y": 3.85,
+        "z": 1.705
+      }
+    },
+    {
+      "id": "kutu_A3_k1_p1",
+      "adres": "A3-kat1-poz1",
+      "raf": "A3",
+      "kat": 1,
+      "pozisyon": 1,
+      "renk": "yesil",
+      "boyut": "orta",
+      "konum": {
+        "x": 2.86,
+        "y": 3.85,
+        "z": 0.655
+      }
+    },
+    {
+      "id": "kutu_A3_k1_p2",
+      "adres": "A3-kat1-poz2",
+      "raf": "A3",
+      "kat": 1,
+      "pozisyon": 2,
+      "renk": "karton",
+      "boyut": "buyuk",
+      "konum": {
+        "x": 3.424,
+        "y": 3.9,
+        "z": 0.69
+      }
+    },
+    {
+      "id": "kutu_A3_k1_p3",
+      "adres": "A3-kat1-poz3",
+      "raf": "A3",
+      "kat": 1,
+      "pozisyon": 3,
+      "renk": "kirmizi",
+      "boyut": "kucuk",
+      "konum": {
+        "x": 4.275,
+        "y": 3.775,
+        "z": 0.62
+      }
+    },
+    {
+      "id": "kutu_A3_k1_p4",
+      "adres": "A3-kat1-poz4",
+      "raf": "A3",
+      "kat": 1,
+      "pozisyon": 4,
+      "renk": "karton",
+      "boyut": "kucuk",
+      "konum": {
+        "x": 4.742,
+        "y": 3.775,
+        "z": 0.62
+      }
+    },
+    {
+      "id": "kutu_A3_k1_p5",
+      "adres": "A3-kat1-poz5",
+      "raf": "A3",
+      "kat": 1,
+      "pozisyon": 5,
+      "renk": "yesil",
+      "boyut": "kucuk",
+      "konum": {
+        "x": 5.2,
+        "y": 3.775,
+        "z": 0.62
+      }
+    },
+    {
+      "id": "kutu_A3_k2_p1",
+      "adres": "A3-kat2-poz1",
+      "raf": "A3",
+      "kat": 2,
+      "pozisyon": 1,
+      "renk": "karton",
+      "boyut": "kucuk",
+      "konum": {
+        "x": 2.8,
+        "y": 3.775,
+        "z": 1.17
+      }
+    },
+    {
+      "id": "kutu_A3_k2_p2",
+      "adres": "A3-kat2-poz2",
+      "raf": "A3",
+      "kat": 2,
+      "pozisyon": 2,
+      "renk": "mavi",
+      "boyut": "orta",
+      "konum": {
+        "x": 3.223,
+        "y": 3.85,
+        "z": 1.205
+      }
+    },
+    {
+      "id": "kutu_A3_k2_p3",
+      "adres": "A3-kat2-poz3",
+      "raf": "A3",
+      "kat": 2,
+      "pozisyon": 3,
+      "renk": "karton",
+      "boyut": "orta",
+      "konum": {
+        "x": 3.812,
+        "y": 3.85,
+        "z": 1.205
+      }
+    },
+    {
+      "id": "kutu_A3_k2_p4",
+      "adres": "A3-kat2-poz4",
+      "raf": "A3",
+      "kat": 2,
+      "pozisyon": 4,
+      "renk": "mavi",
+      "boyut": "kucuk",
+      "konum": {
+        "x": 5.2,
+        "y": 3.775,
+        "z": 1.17
+      }
+    },
+    {
+      "id": "kutu_A3_k3_p1",
+      "adres": "A3-kat3-poz1",
+      "raf": "A3",
+      "kat": 3,
+      "pozisyon": 1,
+      "renk": "karton",
+      "boyut": "orta",
+      "konum": {
+        "x": 2.86,
+        "y": 3.85,
+        "z": 1.705
+      }
+    },
+    {
+      "id": "kutu_A3_k3_p2",
+      "adres": "A3-kat3-poz2",
+      "raf": "A3",
+      "kat": 3,
+      "pozisyon": 2,
+      "renk": "karton",
+      "boyut": "kucuk",
+      "konum": {
+        "x": 3.271,
+        "y": 3.775,
+        "z": 1.67
+      }
+    },
+    {
+      "id": "kutu_A3_k3_p3",
+      "adres": "A3-kat3-poz3",
+      "raf": "A3",
+      "kat": 3,
+      "pozisyon": 3,
+      "renk": "mavi",
+      "boyut": "orta",
+      "konum": {
+        "x": 5.14,
+        "y": 3.85,
+        "z": 1.705
+      }
+    },
+    {
+      "id": "kutu_B1_k1_p1",
+      "adres": "B1-kat1-poz1",
+      "raf": "B1",
+      "kat": 1,
+      "pozisyon": 1,
+      "renk": "mavi",
+      "boyut": "kucuk",
+      "konum": {
+        "x": -5.2,
+        "y": -0.225,
+        "z": 0.62
+      }
+    },
+    {
+      "id": "kutu_B1_k1_p2",
+      "adres": "B1-kat1-poz2",
+      "raf": "B1",
+      "kat": 1,
+      "pozisyon": 2,
+      "renk": "karton",
+      "boyut": "orta",
+      "konum": {
+        "x": -4.75,
+        "y": -0.15,
+        "z": 0.655
+      }
+    },
+    {
+      "id": "kutu_B1_k1_p3",
+      "adres": "B1-kat1-poz3",
+      "raf": "B1",
+      "kat": 1,
+      "pozisyon": 3,
+      "renk": "karton",
+      "boyut": "kucuk",
+      "konum": {
+        "x": -4.188,
+        "y": -0.225,
+        "z": 0.62
+      }
+    },
+    {
+      "id": "kutu_B1_k1_p4",
+      "adres": "B1-kat1-poz4",
+      "raf": "B1",
+      "kat": 1,
+      "pozisyon": 4,
+      "renk": "kirmizi",
+      "boyut": "kucuk",
+      "konum": {
+        "x": -3.334,
+        "y": -0.225,
+        "z": 0.62
+      }
+    },
+    {
+      "id": "kutu_B1_k1_p5",
+      "adres": "B1-kat1-poz5",
+      "raf": "B1",
+      "kat": 1,
+      "pozisyon": 5,
+      "renk": "kirmizi",
+      "boyut": "kucuk",
+      "konum": {
+        "x": -2.8,
+        "y": -0.225,
+        "z": 0.62
+      }
+    },
+    {
+      "id": "kutu_B1_k2_p1",
+      "adres": "B1-kat2-poz1",
+      "raf": "B1",
+      "kat": 2,
+      "pozisyon": 1,
+      "renk": "karton",
+      "boyut": "orta",
+      "konum": {
+        "x": -5.14,
+        "y": -0.15,
+        "z": 1.205
+      }
+    },
+    {
+      "id": "kutu_B1_k2_p2",
+      "adres": "B1-kat2-poz2",
+      "raf": "B1",
+      "kat": 2,
+      "pozisyon": 2,
+      "renk": "karton",
+      "boyut": "kucuk",
+      "konum": {
+        "x": -4.035,
+        "y": -0.225,
+        "z": 1.17
+      }
+    },
+    {
+      "id": "kutu_B1_k2_p3",
+      "adres": "B1-kat2-poz3",
+      "raf": "B1",
+      "kat": 2,
+      "pozisyon": 3,
+      "renk": "karton",
+      "boyut": "buyuk",
+      "konum": {
+        "x": -3.428,
+        "y": -0.1,
+        "z": 1.24
+      }
+    },
+    {
+      "id": "kutu_B1_k2_p4",
+      "adres": "B1-kat2-poz4",
+      "raf": "B1",
+      "kat": 2,
+      "pozisyon": 4,
+      "renk": "karton",
+      "boyut": "kucuk",
+      "konum": {
+        "x": -2.8,
+        "y": -0.225,
+        "z": 1.17
+      }
+    },
+    {
+      "id": "kutu_B1_k3_p1",
+      "adres": "B1-kat3-poz1",
+      "raf": "B1",
+      "kat": 3,
+      "pozisyon": 1,
+      "renk": "mavi",
+      "boyut": "buyuk",
+      "konum": {
+        "x": -5.075,
+        "y": -0.1,
+        "z": 1.74
+      }
+    },
+    {
+      "id": "kutu_B1_k3_p2",
+      "adres": "B1-kat3-poz2",
+      "raf": "B1",
+      "kat": 3,
+      "pozisyon": 2,
+      "renk": "yesil",
+      "boyut": "orta",
+      "konum": {
+        "x": -4.397,
+        "y": -0.15,
+        "z": 1.705
+      }
+    },
+    {
+      "id": "kutu_B1_k3_p3",
+      "adres": "B1-kat3-poz3",
+      "raf": "B1",
+      "kat": 3,
+      "pozisyon": 3,
+      "renk": "karton",
+      "boyut": "kucuk",
+      "konum": {
+        "x": -3.788,
+        "y": -0.225,
+        "z": 1.67
+      }
+    },
+    {
+      "id": "kutu_B1_k3_p4",
+      "adres": "B1-kat3-poz4",
+      "raf": "B1",
+      "kat": 3,
+      "pozisyon": 4,
+      "renk": "kirmizi",
+      "boyut": "kucuk",
+      "konum": {
+        "x": -2.8,
+        "y": -0.225,
+        "z": 1.67
+      }
+    },
+    {
+      "id": "kutu_B2_k1_p1",
+      "adres": "B2-kat1-poz1",
+      "raf": "B2",
+      "kat": 1,
+      "pozisyon": 1,
+      "renk": "sari",
+      "boyut": "buyuk",
+      "konum": {
+        "x": -1.075,
+        "y": -0.1,
+        "z": 0.69
+      }
+    },
+    {
+      "id": "kutu_B2_k1_p2",
+      "adres": "B2-kat1-poz2",
+      "raf": "B2",
+      "kat": 1,
+      "pozisyon": 2,
+      "renk": "yesil",
+      "boyut": "buyuk",
+      "konum": {
+        "x": 1.075,
+        "y": -0.1,
+        "z": 0.69
+      }
+    },
+    {
+      "id": "kutu_B2_k2_p1",
+      "adres": "B2-kat2-poz1",
+      "raf": "B2",
+      "kat": 2,
+      "pozisyon": 1,
+      "renk": "karton",
+      "boyut": "kucuk",
+      "konum": {
+        "x": -1.2,
+        "y": -0.225,
+        "z": 1.17
+      }
+    },
+    {
+      "id": "kutu_B2_k2_p2",
+      "adres": "B2-kat2-poz2",
+      "raf": "B2",
+      "kat": 2,
+      "pozisyon": 2,
+      "renk": "karton",
+      "boyut": "orta",
+      "konum": {
+        "x": -0.695,
+        "y": -0.15,
+        "z": 1.205
+      }
+    },
+    {
+      "id": "kutu_B2_k2_p3",
+      "adres": "B2-kat2-poz3",
+      "raf": "B2",
+      "kat": 2,
+      "pozisyon": 3,
+      "renk": "kirmizi",
+      "boyut": "buyuk",
+      "konum": {
+        "x": 0.001,
+        "y": -0.1,
+        "z": 1.24
+      }
+    },
+    {
+      "id": "kutu_B2_k2_p4",
+      "adres": "B2-kat2-poz4",
+      "raf": "B2",
+      "kat": 2,
+      "pozisyon": 4,
+      "renk": "mavi",
+      "boyut": "kucuk",
+      "konum": {
+        "x": 1.2,
+        "y": -0.225,
+        "z": 1.17
+      }
+    },
+    {
+      "id": "kutu_B2_k3_p1",
+      "adres": "B2-kat3-poz1",
+      "raf": "B2",
+      "kat": 3,
+      "pozisyon": 1,
+      "renk": "sari",
+      "boyut": "buyuk",
+      "konum": {
+        "x": -1.075,
+        "y": -0.1,
+        "z": 1.74
+      }
+    },
+    {
+      "id": "kutu_B2_k3_p2",
+      "adres": "B2-kat3-poz2",
+      "raf": "B2",
+      "kat": 3,
+      "pozisyon": 2,
+      "renk": "kirmizi",
+      "boyut": "orta",
+      "konum": {
+        "x": 1.14,
+        "y": -0.15,
+        "z": 1.705
+      }
+    },
+    {
+      "id": "kutu_B3_k1_p1",
+      "adres": "B3-kat1-poz1",
+      "raf": "B3",
+      "kat": 1,
+      "pozisyon": 1,
+      "renk": "karton",
+      "boyut": "buyuk",
+      "konum": {
+        "x": 2.925,
+        "y": -0.1,
+        "z": 0.69
+      }
+    },
+    {
+      "id": "kutu_B3_k1_p2",
+      "adres": "B3-kat1-poz2",
+      "raf": "B3",
+      "kat": 1,
+      "pozisyon": 2,
+      "renk": "karton",
+      "boyut": "kucuk",
+      "konum": {
+        "x": 3.41,
+        "y": -0.225,
+        "z": 0.62
+      }
+    },
+    {
+      "id": "kutu_B3_k1_p3",
+      "adres": "B3-kat1-poz3",
+      "raf": "B3",
+      "kat": 1,
+      "pozisyon": 3,
+      "renk": "karton",
+      "boyut": "buyuk",
+      "konum": {
+        "x": 4.29,
+        "y": -0.1,
+        "z": 0.69
+      }
+    },
+    {
+      "id": "kutu_B3_k1_p4",
+      "adres": "B3-kat1-poz4",
+      "raf": "B3",
+      "kat": 1,
+      "pozisyon": 4,
+      "renk": "kirmizi",
+      "boyut": "buyuk",
+      "konum": {
+        "x": 5.075,
+        "y": -0.1,
+        "z": 0.69
+      }
+    },
+    {
+      "id": "kutu_B3_k2_p1",
+      "adres": "B3-kat2-poz1",
+      "raf": "B3",
+      "kat": 2,
+      "pozisyon": 1,
+      "renk": "kirmizi",
+      "boyut": "orta",
+      "konum": {
+        "x": 2.86,
+        "y": -0.15,
+        "z": 1.205
+      }
+    },
+    {
+      "id": "kutu_B3_k2_p2",
+      "adres": "B3-kat2-poz2",
+      "raf": "B3",
+      "kat": 2,
+      "pozisyon": 2,
+      "renk": "karton",
+      "boyut": "kucuk",
+      "konum": {
+        "x": 3.327,
+        "y": -0.225,
+        "z": 1.17
+      }
+    },
+    {
+      "id": "kutu_B3_k2_p3",
+      "adres": "B3-kat2-poz3",
+      "raf": "B3",
+      "kat": 2,
+      "pozisyon": 3,
+      "renk": "karton",
+      "boyut": "orta",
+      "konum": {
+        "x": 4.658,
+        "y": -0.15,
+        "z": 1.205
+      }
+    },
+    {
+      "id": "kutu_B3_k2_p4",
+      "adres": "B3-kat2-poz4",
+      "raf": "B3",
+      "kat": 2,
+      "pozisyon": 4,
+      "renk": "karton",
+      "boyut": "kucuk",
+      "konum": {
+        "x": 5.2,
+        "y": -0.225,
+        "z": 1.17
+      }
+    },
+    {
+      "id": "kutu_B3_k3_p1",
+      "adres": "B3-kat3-poz1",
+      "raf": "B3",
+      "kat": 3,
+      "pozisyon": 1,
+      "renk": "karton",
+      "boyut": "kucuk",
+      "konum": {
+        "x": 2.8,
+        "y": -0.225,
+        "z": 1.67
+      }
+    },
+    {
+      "id": "kutu_B3_k3_p2",
+      "adres": "B3-kat3-poz2",
+      "raf": "B3",
+      "kat": 3,
+      "pozisyon": 2,
+      "renk": "yesil",
+      "boyut": "kucuk",
+      "konum": {
+        "x": 5.2,
+        "y": -0.225,
+        "z": 1.67
+      }
+    },
+    {
+      "id": "kutu_C1_k1_p1",
+      "adres": "C1-kat1-poz1",
+      "raf": "C1",
+      "kat": 1,
+      "pozisyon": 1,
+      "renk": "mavi",
+      "boyut": "buyuk",
+      "konum": {
+        "x": -5.075,
+        "y": -3.9,
+        "z": 0.69
+      }
+    },
+    {
+      "id": "kutu_C1_k1_p2",
+      "adres": "C1-kat1-poz2",
+      "raf": "C1",
+      "kat": 1,
+      "pozisyon": 2,
+      "renk": "karton",
+      "boyut": "kucuk",
+      "konum": {
+        "x": -3.88,
+        "y": -3.775,
+        "z": 0.62
+      }
+    },
+    {
+      "id": "kutu_C1_k1_p3",
+      "adres": "C1-kat1-poz3",
+      "raf": "C1",
+      "kat": 1,
+      "pozisyon": 3,
+      "renk": "mavi",
+      "boyut": "kucuk",
+      "konum": {
+        "x": -3.481,
+        "y": -3.775,
+        "z": 0.62
+      }
+    },
+    {
+      "id": "kutu_C1_k1_p4",
+      "adres": "C1-kat1-poz4",
+      "raf": "C1",
+      "kat": 1,
+      "pozisyon": 4,
+      "renk": "sari",
+      "boyut": "buyuk",
+      "konum": {
+        "x": -2.925,
+        "y": -3.9,
+        "z": 0.69
+      }
+    },
+    {
+      "id": "kutu_C1_k2_p1",
+      "adres": "C1-kat2-poz1",
+      "raf": "C1",
+      "kat": 2,
+      "pozisyon": 1,
+      "renk": "karton",
+      "boyut": "kucuk",
+      "konum": {
+        "x": -5.2,
+        "y": -3.775,
+        "z": 1.17
+      }
+    },
+    {
+      "id": "kutu_C1_k2_p2",
+      "adres": "C1-kat2-poz2",
+      "raf": "C1",
+      "kat": 2,
+      "pozisyon": 2,
+      "renk": "yesil",
+      "boyut": "kucuk",
+      "konum": {
+        "x": -4.058,
+        "y": -3.775,
+        "z": 1.17
+      }
+    },
+    {
+      "id": "kutu_C1_k2_p3",
+      "adres": "C1-kat2-poz3",
+      "raf": "C1",
+      "kat": 2,
+      "pozisyon": 3,
+      "renk": "karton",
+      "boyut": "buyuk",
+      "konum": {
+        "x": -3.581,
+        "y": -3.9,
+        "z": 1.24
+      }
+    },
+    {
+      "id": "kutu_C1_k2_p4",
+      "adres": "C1-kat2-poz4",
+      "raf": "C1",
+      "kat": 2,
+      "pozisyon": 4,
+      "renk": "mavi",
+      "boyut": "orta",
+      "konum": {
+        "x": -2.86,
+        "y": -3.85,
+        "z": 1.205
+      }
+    },
+    {
+      "id": "kutu_C1_k3_p1",
+      "adres": "C1-kat3-poz1",
+      "raf": "C1",
+      "kat": 3,
+      "pozisyon": 1,
+      "renk": "karton",
+      "boyut": "orta",
+      "konum": {
+        "x": -5.14,
+        "y": -3.85,
+        "z": 1.705
+      }
+    },
+    {
+      "id": "kutu_C1_k3_p2",
+      "adres": "C1-kat3-poz2",
+      "raf": "C1",
+      "kat": 3,
+      "pozisyon": 2,
+      "renk": "karton",
+      "boyut": "orta",
+      "konum": {
+        "x": -2.86,
+        "y": -3.85,
+        "z": 1.705
+      }
+    },
+    {
+      "id": "kutu_C2_k1_p1",
+      "adres": "C2-kat1-poz1",
+      "raf": "C2",
+      "kat": 1,
+      "pozisyon": 1,
+      "renk": "karton",
+      "boyut": "buyuk",
+      "konum": {
+        "x": -1.075,
+        "y": -3.9,
+        "z": 0.69
+      }
+    },
+    {
+      "id": "kutu_C2_k1_p2",
+      "adres": "C2-kat1-poz2",
+      "raf": "C2",
+      "kat": 1,
+      "pozisyon": 2,
+      "renk": "mavi",
+      "boyut": "kucuk",
+      "konum": {
+        "x": -0.466,
+        "y": -3.775,
+        "z": 0.62
+      }
+    },
+    {
+      "id": "kutu_C2_k1_p3",
+      "adres": "C2-kat1-poz3",
+      "raf": "C2",
+      "kat": 1,
+      "pozisyon": 3,
+      "renk": "karton",
+      "boyut": "kucuk",
+      "konum": {
+        "x": -0.057,
+        "y": -3.775,
+        "z": 0.62
+      }
+    },
+    {
+      "id": "kutu_C2_k1_p4",
+      "adres": "C2-kat1-poz4",
+      "raf": "C2",
+      "kat": 1,
+      "pozisyon": 4,
+      "renk": "karton",
+      "boyut": "buyuk",
+      "konum": {
+        "x": 1.075,
+        "y": -3.9,
+        "z": 0.69
+      }
+    },
+    {
+      "id": "kutu_C2_k2_p1",
+      "adres": "C2-kat2-poz1",
+      "raf": "C2",
+      "kat": 2,
+      "pozisyon": 1,
+      "renk": "mavi",
+      "boyut": "kucuk",
+      "konum": {
+        "x": -1.2,
+        "y": -3.775,
+        "z": 1.17
+      }
+    },
+    {
+      "id": "kutu_C2_k2_p2",
+      "adres": "C2-kat2-poz2",
+      "raf": "C2",
+      "kat": 2,
+      "pozisyon": 2,
+      "renk": "karton",
+      "boyut": "orta",
+      "konum": {
+        "x": 0.074,
+        "y": -3.85,
+        "z": 1.205
+      }
+    },
+    {
+      "id": "kutu_C2_k2_p3",
+      "adres": "C2-kat2-poz3",
+      "raf": "C2",
+      "kat": 2,
+      "pozisyon": 3,
+      "renk": "karton",
+      "boyut": "buyuk",
+      "konum": {
+        "x": 0.627,
+        "y": -3.9,
+        "z": 1.24
+      }
+    },
+    {
+      "id": "kutu_C2_k2_p4",
+      "adres": "C2-kat2-poz4",
+      "raf": "C2",
+      "kat": 2,
+      "pozisyon": 4,
+      "renk": "sari",
+      "boyut": "kucuk",
+      "konum": {
+        "x": 1.2,
+        "y": -3.775,
+        "z": 1.17
+      }
+    },
+    {
+      "id": "kutu_C2_k3_p1",
+      "adres": "C2-kat3-poz1",
+      "raf": "C2",
+      "kat": 3,
+      "pozisyon": 1,
+      "renk": "karton",
+      "boyut": "orta",
+      "konum": {
+        "x": -1.14,
+        "y": -3.85,
+        "z": 1.705
+      }
+    },
+    {
+      "id": "kutu_C2_k3_p2",
+      "adres": "C2-kat3-poz2",
+      "raf": "C2",
+      "kat": 3,
+      "pozisyon": 2,
+      "renk": "mavi",
+      "boyut": "buyuk",
+      "konum": {
+        "x": -0.493,
+        "y": -3.9,
+        "z": 1.74
+      }
+    },
+    {
+      "id": "kutu_C2_k3_p3",
+      "adres": "C2-kat3-poz3",
+      "raf": "C2",
+      "kat": 3,
+      "pozisyon": 3,
+      "renk": "karton",
+      "boyut": "kucuk",
+      "konum": {
+        "x": -0.003,
+        "y": -3.775,
+        "z": 1.67
+      }
+    },
+    {
+      "id": "kutu_C2_k3_p4",
+      "adres": "C2-kat3-poz4",
+      "raf": "C2",
+      "kat": 3,
+      "pozisyon": 4,
+      "renk": "karton",
+      "boyut": "orta",
+      "konum": {
+        "x": 0.783,
+        "y": -3.85,
+        "z": 1.705
+      }
+    },
+    {
+      "id": "kutu_C2_k3_p5",
+      "adres": "C2-kat3-poz5",
+      "raf": "C2",
+      "kat": 3,
+      "pozisyon": 5,
+      "renk": "karton",
+      "boyut": "kucuk",
+      "konum": {
+        "x": 1.2,
+        "y": -3.775,
+        "z": 1.67
+      }
+    },
+    {
+      "id": "kutu_C3_k1_p1",
+      "adres": "C3-kat1-poz1",
+      "raf": "C3",
+      "kat": 1,
+      "pozisyon": 1,
+      "renk": "karton",
+      "boyut": "kucuk",
+      "konum": {
+        "x": 2.8,
+        "y": -3.775,
+        "z": 0.62
+      }
+    },
+    {
+      "id": "kutu_C3_k1_p2",
+      "adres": "C3-kat1-poz2",
+      "raf": "C3",
+      "kat": 1,
+      "pozisyon": 2,
+      "renk": "karton",
+      "boyut": "buyuk",
+      "konum": {
+        "x": 3.325,
+        "y": -3.9,
+        "z": 0.69
+      }
+    },
+    {
+      "id": "kutu_C3_k1_p3",
+      "adres": "C3-kat1-poz3",
+      "raf": "C3",
+      "kat": 1,
+      "pozisyon": 3,
+      "renk": "yesil",
+      "boyut": "kucuk",
+      "konum": {
+        "x": 5.2,
+        "y": -3.775,
+        "z": 0.62
+      }
+    },
+    {
+      "id": "kutu_C3_k2_p1",
+      "adres": "C3-kat2-poz1",
+      "raf": "C3",
+      "kat": 2,
+      "pozisyon": 1,
+      "renk": "karton",
+      "boyut": "orta",
+      "konum": {
+        "x": 2.86,
+        "y": -3.85,
+        "z": 1.205
+      }
+    },
+    {
+      "id": "kutu_C3_k2_p2",
+      "adres": "C3-kat2-poz2",
+      "raf": "C3",
+      "kat": 2,
+      "pozisyon": 2,
+      "renk": "karton",
+      "boyut": "kucuk",
+      "konum": {
+        "x": 5.2,
+        "y": -3.775,
+        "z": 1.17
+      }
+    },
+    {
+      "id": "kutu_C3_k3_p1",
+      "adres": "C3-kat3-poz1",
+      "raf": "C3",
+      "kat": 3,
+      "pozisyon": 1,
+      "renk": "yesil",
+      "boyut": "buyuk",
+      "konum": {
+        "x": 2.925,
+        "y": -3.9,
+        "z": 1.74
+      }
+    },
+    {
+      "id": "kutu_C3_k3_p2",
+      "adres": "C3-kat3-poz2",
+      "raf": "C3",
+      "kat": 3,
+      "pozisyon": 2,
+      "renk": "yesil",
+      "boyut": "kucuk",
+      "konum": {
+        "x": 3.453,
+        "y": -3.775,
+        "z": 1.67
+      }
+    },
+    {
+      "id": "kutu_C3_k3_p3",
+      "adres": "C3-kat3-poz3",
+      "raf": "C3",
+      "kat": 3,
+      "pozisyon": 3,
+      "renk": "karton",
+      "boyut": "buyuk",
+      "konum": {
+        "x": 3.95,
+        "y": -3.9,
+        "z": 1.74
+      }
+    },
+    {
+      "id": "kutu_C3_k3_p4",
+      "adres": "C3-kat3-poz4",
+      "raf": "C3",
+      "kat": 3,
+      "pozisyon": 4,
+      "renk": "kirmizi",
+      "boyut": "buyuk",
+      "konum": {
+        "x": 5.075,
+        "y": -3.9,
+        "z": 1.74
+      }
+    }
+  ]
+}
