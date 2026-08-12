@@ -24,6 +24,7 @@ def generate_launch_description():
         name='kamera_aci_koprusu',
         arguments=[
             '/kamera_acisi@std_msgs/msg/Float64@gz.msgs.Double',
+            '/world/default/set_pose@ros_gz_interfaces/srv/SetEntityPose',
         ],
         output='screen'
     )
