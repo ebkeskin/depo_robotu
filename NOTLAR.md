@@ -360,6 +360,48 @@ render-tabanlı mı (sadece visual görür) çalıştığı kontrol edilmeli.
 
 ---
 
+## SORUN 12 — kutu_tespit tespitleri rafa göre kapsamlanmıyor (shelf-scoped değil)
+
+**Belirti**
+`tarama_kontrol.py` (Sprint 2E) ile B2 önünde üç kat tarandığında, kat
+başına 8-13 tespit geliyor; oysa `envanter.json`'a göre B2'nin kat
+başına en fazla 4 kutusu var (toplam 8 kutu / 3 kat). Renk bazlı
+eşleştirmeyle envanterin tamamı (8/8) "bulundu" sayılsa da, 25 tespit
+hiçbir gerçek B2 kutusuyla eşleşmeden fazlalık kalıyor.
+
+**Sebep**
+`kutu_tespit.py` bir pikselin *hangi rafa* ait olduğunu hiç hesaplamıyor
+— sadece `piksel_kat_hesapla` ile hangi **kata** (z yüksekliğine) denk
+geldiğini buluyor (`kutu_tespit.py:130` civarı). Geniş kamera FOV'u
+(bkz. KARAR 1) B2'nin önünden bakarken komşu raflardaki (aynı sütun,
+farklı satır — örn. A2/C2) aynı kat yüksekliğindeki kutuları da
+kadraja alabiliyor; bunlar da aynı z-aralığına düştüğü için tespit
+listesine "B2'ye ait" gibi karışıyor. Bu, "Açık konular" bölümündeki
+raf-arkası boşluk gözlemiyle aynı kök nedenin (dar koridorda geniş FOV,
+adres bilgisi olmayan ray-plane kestirimi) farklı bir belirtisi —
+oradaki gözlem tek node (`kutu_tespit` tek başına, `renk_probu`
+tarzı manuel test) ile şüpheliydi, `tarama_kontrol`'ün üç kat +
+envanter karşılaştırması bunu somut sayılarla doğruladı.
+
+**Durum**
+Kod değişikliği yapılmadı — `kutu_tespit.py`'ye dokunulmadı (bkz. bu
+node'u orkestre eden `tarama_kontrol.py`'nin tasarım kısıtı: mevcut
+node'lar değiştirilmeyecek). `tarama_kontrol.py`'nin raporu artık
+`fazla_tespit` alanıyla bu farkı açıkça gösteriyor, gizlemiyor.
+
+**Olası çözüm yönleri (henüz uygulanmadı)**
+- `piksel_kat_hesapla`'nın zaten hesapladığı yanal (raf boyunca) konuma
+  ek olarak *derinlik* (ışının hangi raf düzlemini kestiği) de
+  hesaplanıp, hedef rafın bilinen (x, y) adresiyle karşılaştırılabilir.
+- Ya da tespit sırasında LIDAR mesafesini "sadece en yakın rafa kadar"
+  değil, hedef rafın bilinen mesafesiyle sınırlı bir pencereye
+  kısıtlamak (şu an zaten `self.mesafe` = LIDAR'ın gördüğü en yakın
+  nokta, ama bu en yakın rafın önündeki objeyi verir, arka rafları
+  elemez — bkz. SORUN 11'deki visual/collision ayrımı da bu mesafenin
+  güvenilirliğini etkiliyor).
+
+---
+
 ## KARAR 1 — Kamera açısı ve görüş alanı
 
 **Problem**
@@ -504,7 +546,10 @@ Derlemeden sonra **yeni terminal** açılmalı (ortam tazelensin).
       şekilde görülen uzak nesneler için tamamen geçersiz bir yükseklik/adres
       üretir. B2 testinde envanterle eşleşmeyen küçük mavi/sarı tespitler
       bulundu; en olası açıklama bu ama kaynağı kesin doğrulanmadı. Henüz kod
-      değişikliği yapılmadı, sadece gözlem/risk kaydı.
+      değişikliği yapılmadı, sadece gözlem/risk kaydı. **Güncelleme:**
+      `tarama_kontrol.py` ile yapılan üç-katlı B2 taramasında bu artık
+      sayısal olarak doğrulandı (bkz. SORUN 12) — kök neden aynı: tespitler
+      rafa göre kapsamlanmıyor (shelf-scoped değil).
 
 ---
 

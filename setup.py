@@ -14,6 +14,7 @@ setup(
         ('share/' + package_name, ['package.xml']),
         (os.path.join('share', package_name, 'worlds'), glob('worlds/*.sdf')),
         (os.path.join('share', package_name, 'launch'), glob('launch/*.py')),
+        (os.path.join('share', package_name, 'araclar'), glob('araclar/envanter.json')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -29,6 +30,11 @@ setup(
     entry_points={
         'console_scripts': [
             'kamera_kontrol = depo_robotu.kamera_kontrol:main',
+            'kat_tespit = depo_robotu.kat_tespit:main',
+            'piksel_kat_tespit = depo_robotu.piksel_kat_tespit:main' ,
+            'renk_probu = depo_robotu.renk_probu:main' ,
+            'kutu_tespit = depo_robotu.kutu_tespit:main',
+            'tarama_kontrol = depo_robotu.tarama_kontrol:main',
         ],
     },
 )
