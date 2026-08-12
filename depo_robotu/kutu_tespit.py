@@ -59,13 +59,18 @@ CIZIM_RENKLERI = {
     'karton': (19, 69, 139),
 }
 
-MIN_KONTUR_ALANI = 200       # px^2 - gurultuyu ele
+MIN_KONTUR_ALANI = 120       # px^2 - gurultuyu ele (200 -> 120: birkac cm poz
+                              # sapmasinda kucuk/kismi kontur parcalarini elemiyordu)
 MAX_KONTUR_ORANI = 0.5       # goruntunun yarisindan buyuk kontur = arka plan
-EN_BOY_ALT_SINIR = 0.4       # direk filtresi (butun renklere uygulanir)
-EN_BOY_UST_SINIR = 2.5
+EN_BOY_ALT_SINIR = 0.3       # direk filtresi (butun renklere uygulanir)
+EN_BOY_UST_SINIR = 4.0       # 2.5 -> 4.0: yan yana duran iki kutu bazi pozlarda
+                              # tek genis bloba birlesiyor (oran ~3.6), gercek
+                              # kutuyu direk sanip elemesin diye ust sinir gevsetildi
 
 KAT_YUKSEKLIKLERI = {1: 0.63, 2: 1.18, 3: 1.68}
-KAT_TOLERANS = 0.30
+KAT_TOLERANS = 0.35          # 0.30 -> 0.35: poz sapmasindan gelen z-tahmin
+                              # gurultusune pay birakildi (kat atamasi zaten
+                              # en-yakin mantigiyla yapiliyor, cakisma riski yok)
 
 # Raf direk konumu filtresi: en-boy orani direkleri hep elemiyor (bkz.
 # NOTLAR.md SORUN 12) - direkler rafin en kenarinda oldugundan genis FOV'da
@@ -77,7 +82,13 @@ KAT_TOLERANS = 0.30
 RAF_UZUNLUK = 2.8            # kutu_uret.py ile ayni
 DIREK_KENAR_PAYI = 0.05      # kutu_uret.py'deki sol_kenar/sag_kenar payi
 DIREK_X = RAF_UZUNLUK / 2 - DIREK_KENAR_PAYI   # = 1.35
-DIREK_TOLERANS = 0.12        # metre
+# En kucuk kutu (0.30 m) kenara yaslandiginda merkezi direkten sadece 0.15 m
+# uzakta olabiliyor (kutu_uret.py yerlesim geometrisinden gelen minimum).
+# 0.12'lik tolerans bu kutuyu 0.03 m pay ile ayirt ediyordu; birkac cm'lik
+# poz sapmasi yanal_konum tahminini bu banda itip gercek kutuyu direk sanip
+# eliyordu. Payi buyutmek icin tolerans BUYUTULMEDI, KUCULTULDU (0.08) - amac
+# gercek kenar kutusuna daha genis guvenlik marji birakmak.
+DIREK_TOLERANS = 0.08        # metre
 
 
 class KutuTespit(Node):
@@ -179,6 +190,49 @@ class KutuTespit(Node):
             return 'orta'
         return 'kucuk'
 
+    def _birlesik_konturu_ayir(self, kontur):
+        """Bitisik duran iki kutunun HSV maskede tek kontura birlesmesini
+        distance-transform + watershed ile ayirir (bkz. NOTLAR.md - iki
+        karton kutu tek genis bloba birlesiyordu, MORPH_CLOSE kernelini
+        kucultmek/kaldirmak cozmedi cunku kutular hamur maskede zaten
+        birbirine degiyor, morfolojik kapatmadan gelen bir kopru degil).
+
+        Tek kutuluk konturlarda mesafe haritasinin tek bir tepe bolgesi
+        olur -> bolme yapilmaz, orijinal bounding rect aynen doner.
+        """
+        x, y, w, h = cv2.boundingRect(kontur)
+        alt_maske = np.zeros((h, w), np.uint8)
+        cv2.drawContours(alt_maske, [kontur], -1, 255, thickness=cv2.FILLED, offset=(-x, -y))
+
+        mesafe_haritasi = cv2.distanceTransform(alt_maske, cv2.DIST_L2, 5)
+        tepe_degeri = mesafe_haritasi.max()
+        if tepe_degeri < 1e-3:
+            return [(x, y, w, h)]
+
+        _, on_plan = cv2.threshold(mesafe_haritasi, 0.5 * tepe_degeri, 255, cv2.THRESH_BINARY)
+        on_plan = on_plan.astype(np.uint8)
+        n_bilesen, etiketler = cv2.connectedComponents(on_plan)
+        if n_bilesen <= 2:      # arka plan (0) + tek nesne cekirdegi -> bolme gerekmiyor
+            return [(x, y, w, h)]
+
+        etiketler = etiketler + 1
+        bilinmeyen = cv2.subtract(alt_maske, on_plan)
+        etiketler[bilinmeyen == 255] = 0
+        renkli = cv2.cvtColor(alt_maske, cv2.COLOR_GRAY2BGR)
+        cv2.watershed(renkli, etiketler)
+
+        sonuc = []
+        for etiket in range(2, n_bilesen + 1):
+            parca = np.uint8(etiketler == etiket) * 255
+            alt_konturlar, _ = cv2.findContours(parca, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            for ak in alt_konturlar:
+                if cv2.contourArea(ak) < MIN_KONTUR_ALANI * 0.5:
+                    continue
+                ax, ay, aw, ah = cv2.boundingRect(ak)
+                sonuc.append((x + ax, y + ay, aw, ah))
+
+        return sonuc if sonuc else [(x, y, w, h)]
+
     def tespit_dongusu(self):
         if self.son_kare is None or self.k_matrisi is None or self.mesafe is None:
             return
@@ -203,12 +257,14 @@ class KutuTespit(Node):
             konturlar, _ = cv2.findContours(
                 maske, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
+            kutu_kutulari = []
             for kontur in konturlar:
                 alan = cv2.contourArea(kontur)
                 if alan < MIN_KONTUR_ALANI or alan > goruntu_alani * MAX_KONTUR_ORANI:
                     continue
+                kutu_kutulari.extend(self._birlesik_konturu_ayir(kontur))
 
-                x, y, w, h = cv2.boundingRect(kontur)
+            for x, y, w, h in kutu_kutulari:
                 oran = w / float(h) if h > 0 else 0
                 if oran < EN_BOY_ALT_SINIR or oran > EN_BOY_UST_SINIR:
                     continue  # muhtemelen raf diregi (ince-uzun)

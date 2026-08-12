@@ -402,6 +402,54 @@ node'lar değiştirilmeyecek). `tarama_kontrol.py`'nin raporu artık
 
 ---
 
+## SORUN 13 — bitişik iki kutu tek kontura birleşiyor (kontur birleşmesi)
+
+**Belirti**
+`tarama_kontrol.py` ile B2 taranırken kat2'deki 2 karton kutu (küçük +
+orta, raf-yerel x farkı ~0.5 m) `/tespitler`'de tek bir "buyuk" karton
+tespiti olarak çıkıyor — envanterdeki 2 kutu yerine 1.
+
+**Sebep**
+İki kutu kamera açısından bakıldığında görüntüde optik olarak
+birbirine değiyor; HSV maskesinde `MORPH_CLOSE`/`OPEN` öncesi ham
+maskede bile tek blok halinde bitişikler (kernel=0 testiyle
+doğrulandı — köprü morfolojik kapatmadan gelmiyor, kutular gerçekten
+temas ediyor). `cv2.findContours(RETR_EXTERNAL, ...)` bu tek bloğu
+kaçınılmaz olarak tek dış kontur olarak döndürüyor.
+
+Önceki bir oturumda `EN_BOY_UST_SINIR` 2.5 → 4.0'a gevşetilmişti (bu
+birleşik bloğun en-boy oranı ~3.6 olduğu için direk filtresine
+takılmasın diye) — bu sadece blob'un tamamen elenmesini önlüyordu,
+gerçek nedeni (tek kontur = tek tespit) çözmüyordu.
+
+**Çözüm**
+`kutu_tespit.py`'ye `_birlesik_konturu_ayir` metodu eklendi: her
+external kontur, kendi bounding-box'ı içinde crop'lanıp
+`cv2.distanceTransform` + `cv2.watershed` ile ayrıştırılıyor. Tek
+kutuluk konturlarda mesafe haritasının tek bir tepe bölgesi olduğundan
+bölme yapılmıyor (orijinal bounding rect aynen dönüyor — mevcut
+tek-kutu tespitlerinde regresyon riski yok); ≥2 ayrık tepe bulunursa
+her biri ayrı bir tespit olarak döner. Bölme, global değil kontur
+bazında lokal yapılıyor — aksi halde tek bir global mesafe eşiği,
+görüntüdeki diğer küçük/izole kutuları da eleyebilirdi.
+
+`MORPH_CLOSE`/`OPEN` kernel'i 3×3'e küçültülerek de denendi, işe
+yaramadı (yukarıdaki "Sebep" bölümüne bkz.) — 5×5'e geri alındı.
+
+**Doğrulama**
+B2 kat2 penceresinde tekrarlanan taramalarda artık 2 ayrı karton
+tespiti geliyor (önceden 1). Direk (`mavi`) tespit sayıları taramalar
+arasında aynı aralıkta kaldı (6-9/pencere) — direk filtresinde
+regresyon yok.
+
+**Açık nokta**
+Bölünen kutunun boyut kestirimi (`boyut_kestir`) kareler arasında
+"orta"/"buyuk" arasında salınabiliyor — watershed sınırındaki piksel
+gürültüsünden kaynaklanıyor gibi görünüyor, sayım doğruluğunu
+etkilemiyor ama boyut alanı gürültülü kalabilir.
+
+---
+
 ## KARAR 1 — Kamera açısı ve görüş alanı
 
 **Problem**
