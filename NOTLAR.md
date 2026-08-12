@@ -448,6 +448,26 @@ Bölünen kutunun boyut kestirimi (`boyut_kestir`) kareler arasında
 gürültüsünden kaynaklanıyor gibi görünüyor, sayım doğruluğunu
 etkilemiyor ama boyut alanı gürültülü kalabilir.
 
+**Ek doğrulama (C2, sabit eşik yetersiz kaldı)**
+B2'nin ardından C2 rafında da aynı testi (raf=C2, `tarama_kontrol.py`)
+tekrarladık. C2'nin `kutu_uret.py`'deki `yon="kuzey"` değeri robotun
+rafın **kuzeyinden, güneye bakarak** durması gerektiği anlamına
+geliyor (B2'nin tam tersi) — pozisyon (0, -2.0) yaw=-90° ile doğru
+raf doğrulandı (13/13 renk eşleşmesi).
+
+C2 kat2'de (orta+büyük karton, ~0.55 m aralık) ve kat3'te (orta+kucuk
+karton, ~0.42 m aralık) SORUN 13'teki sabit 0.5 esik orani bu ikiliyi
+AYIRAMADI — sadece 1 tespit döndü. Sebep: boyut-simetrik ciftlerde
+(B2) birlesim beli mesafe tepesinin ~yarisina kadar dusuyor, ama
+boyut-asimetrik ciftlerde bel daha sig kaliyor (~%66) - sabit 0.5
+esigi bu ikinci durumu yakalamiyordu.
+
+**Çözüm:** `_birlesik_konturu_ayir` sabit tek oran yerine, 0.75'ten
+0.35'e adaptif tarayan bir esige gevsetildi - iki yeterli-buyuklukte
+ayri cekirdek bulan EN SIKI (en guvenli) esik kullaniliyor. C2 kat2/
+kat3'te dogru ayrim saglandi, B2'de regresyon kontrolu yapildi (kat2
+hala dogru 2 karton, direk filtresinde sapma yok).
+
 ---
 
 ## KARAR 1 — Kamera açısı ve görüş alanı

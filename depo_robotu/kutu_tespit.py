@@ -190,15 +190,32 @@ class KutuTespit(Node):
             return 'orta'
         return 'kucuk'
 
-    def _birlesik_konturu_ayir(self, kontur):
-        """Bitisik duran iki kutunun HSV maskede tek kontura birlesmesini
-        distance-transform + watershed ile ayirir (bkz. NOTLAR.md - iki
-        karton kutu tek genis bloba birlesiyordu, MORPH_CLOSE kernelini
-        kucultmek/kaldirmak cozmedi cunku kutular hamur maskede zaten
-        birbirine degiyor, morfolojik kapatmadan gelen bir kopru degil).
+    # esik oranlari, tepeden (siki) tabana (gevsek) dogru denenir - bkz.
+    # _birlesik_konturu_ayir docstring'i: sabit tek oran boyut-simetrik
+    # birlesmelerde (B2) yeterliydi ama boyut-asimetrik ciftlerde (orta+
+    # buyuk gibi, C2 kat2/kat3) beli daha sig oldugundan yetersiz kaliyordu.
+    _AYIRMA_ESIK_ORANLARI = [0.75, 0.7, 0.65, 0.6, 0.55, 0.5, 0.45, 0.4, 0.35]
+    _MIN_TOHUM_ALANI = 40    # px^2 - cekirdek sayilmak icin gereken min alan
 
-        Tek kutuluk konturlarda mesafe haritasinin tek bir tepe bolgesi
-        olur -> bolme yapilmaz, orijinal bounding rect aynen doner.
+    def _birlesik_konturu_ayir(self, kontur):
+        """Bitisik duran iki (veya daha fazla) kutunun HSV maskede tek
+        kontura birlesmesini distance-transform + watershed ile ayirir
+        (bkz. NOTLAR.md - iki karton kutu tek genis bloba birlesiyordu;
+        MORPH_CLOSE kernelini kucultmek/kaldirmak cozmedi cunku kutular
+        hamur maskede zaten birbirine degiyor, morfolojik kapatmadan
+        gelen bir kopru degil).
+
+        Esik orani sabit degil: kutular ayni boyuttaysa (B2) birlesim
+        beli mesafe tepesinin ~yarisina kadar dusuyor, ama farkli
+        boyutlu komsularda (orta+buyuk gibi) beli daha sig kalabiliyor
+        (~%66) - tek sabit oran (0.5) bu durumda ayiramiyordu (C2 kat2/
+        kat3'te dogrulandi). Bu yuzden en siki (en guvenli) esikten
+        baslayip, iki ayri yeterli-buyuklukte cekirdek bulan ILK esik
+        kullanilir - once boyut-simetrik durumdaki gibi net ayrimlar
+        tercih edilir, gerekirse daha gevsek esige inilir.
+
+        Tek kutuluk konturlarda hicbir esikte 2 ayri cekirdek bulunamaz
+        -> bolme yapilmaz, orijinal bounding rect aynen doner.
         """
         x, y, w, h = cv2.boundingRect(kontur)
         alt_maske = np.zeros((h, w), np.uint8)
@@ -209,20 +226,30 @@ class KutuTespit(Node):
         if tepe_degeri < 1e-3:
             return [(x, y, w, h)]
 
-        _, on_plan = cv2.threshold(mesafe_haritasi, 0.5 * tepe_degeri, 255, cv2.THRESH_BINARY)
-        on_plan = on_plan.astype(np.uint8)
-        n_bilesen, etiketler = cv2.connectedComponents(on_plan)
-        if n_bilesen <= 2:      # arka plan (0) + tek nesne cekirdegi -> bolme gerekmiyor
+        secilen_etiketler = None
+        n_cekirdek = 0
+        for oran in self._AYIRMA_ESIK_ORANLARI:
+            _, on_plan = cv2.threshold(mesafe_haritasi, oran * tepe_degeri, 255, cv2.THRESH_BINARY)
+            on_plan = on_plan.astype(np.uint8)
+            n, etiketler_t, istatistik, _ = cv2.connectedComponentsWithStats(on_plan)
+            gecerli = [i for i in range(1, n) if istatistik[i, cv2.CC_STAT_AREA] >= self._MIN_TOHUM_ALANI]
+            if len(gecerli) >= 2:
+                secilen_etiketler = etiketler_t
+                n_cekirdek = len(gecerli)
+                break
+
+        if secilen_etiketler is None:
             return [(x, y, w, h)]
 
-        etiketler = etiketler + 1
-        bilinmeyen = cv2.subtract(alt_maske, on_plan)
+        etiketler = secilen_etiketler + 1
+        kesin_on_plan = np.uint8(secilen_etiketler > 0) * 255
+        bilinmeyen = cv2.subtract(alt_maske, kesin_on_plan)
         etiketler[bilinmeyen == 255] = 0
         renkli = cv2.cvtColor(alt_maske, cv2.COLOR_GRAY2BGR)
         cv2.watershed(renkli, etiketler)
 
         sonuc = []
-        for etiket in range(2, n_bilesen + 1):
+        for etiket in range(2, n_cekirdek + 2):
             parca = np.uint8(etiketler == etiket) * 255
             alt_konturlar, _ = cv2.findContours(parca, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             for ak in alt_konturlar:
