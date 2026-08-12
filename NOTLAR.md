@@ -305,6 +305,61 @@ ros2 topic echo /cmd_vel --once
 
 ---
 
+## SORUN 11 — LIDAR mesafesi yanlış, kat tespiti sistematik hatalı
+
+**Belirti**
+Robot bir rafın (B2) tam ortasında, rafa dik durduğu halde `kamera_kontrol`
+düğümünün ölçtüğü mesafe geometrik olarak beklenenden ~0.65 m fazla
+(1.75 m yerine ~1.1 m bekleniyordu). Bu yanlış mesafe `kutu_tespit.py`'nin
+kat hesaplarına giriyor ve kamera hangi açıya gönderilirse gönderilsin
+aynı fiziksel kutu hep aynı (yanlış) kata atanıyor — merkez kırmızı kutu
+(gerçekte kat2) sürekli kat3, kenar sarı/yeşil kutular (gerçekte kat1)
+sürekli kat2 çıkıyor.
+
+**Teşhis**
+`/scan` mesajı ham okunduğunda, robotun tam önünde (açı 0°, dünya +y yönü)
+`inf` dönüyor — 3.5 m menzilde hiçbir şeye çarpmıyor. ±60°'lik koninin
+gördüğü tek nokta, açısal olarak rafın kenar direğine denk geliyor; o
+noktanın mesafesi (1.738 m), direğin en yakın köşesine geometrik olarak
+hesaplanan mesafeyle (1.746 m) neredeyse birebir örtüşüyor.
+
+**Sebep**
+gz-sim'in `gpu_lidar` sensörü ışınları **render motoruyla** hesaplıyor —
+yani sadece `<visual>` geometrisine çarpıyor, fizik motorunun kullandığı
+`<collision>`'a değil. `depo.sdf`'teki raflar performans için tek parça
+**görünmez** collision bloğu + parçalı (2 dikey direk + 3 ince tabla)
+**visual**'dan oluşuyor (bkz. KARAR 3). Robot rafın merkezinde durduğunda,
+LIDAR yüksekliğinde (~0.13 m) önünde hiçbir visual yok — direkler
+kenarlarda (x=±1.35), tablalar çok daha yukarıda (z≥0.45). Işın boşluktan
+geçip hiçbir şeye çarpmıyor; koni sadece açılı gidip kenar direklerine
+değen ışınları görüyor.
+
+**Elenen hipotezler**
+- LIDAR/TF mount offset (`lidar_joint`, `model.sdf`): rotasyon yok, sadece
+  ~6 cm öteleme — 65 cm'lik farkı açıklamıyor.
+- `raf_B2`'nin `depo.sdf` içindeki collision pose/size'ı: dokümandaki
+  y=-0.4 güney-kenar varsayımıyla birebir örtüşüyor, tutarsızlık yok.
+
+**Çözüm**
+9 rafın tamamına, collision ile aynı pose/boyutta, kamera için tamamen
+saydam (`<transparency>1</transparency>`) bir `lidar_dolgu` visual
+eklendi. Görünüm değişmedi, LIDAR artık gerçek raf yüzeyini görüyor.
+
+**Doğrulama**
+Ölçülen mesafe 1.75 m → 1.15 m (beklenen ~1.1 m'ye çok yakın). B2 önünde
+üç kata da tarama yapıldı, `kutu_tespit.py`'nin kat atamaları
+`envanter.json` ground truth ile artık eşleşiyor.
+
+**Ders**
+gz-sim'de `gpu_lidar` / kamera gibi **render-tabanlı** sensörler sadece
+`<visual>` geometrisini görür. Performans için "collision tek blok, visual
+parçalı" tasarlanan herhangi bir statik model (raf, dolap, vb.), o modele
+bakan bir LIDAR/derinlik kamerası eklenecekse aynı sorunu verir. Yeni bir
+sensör eklenmeden önce, o sensörün ray-tracing mi (collision görür) yoksa
+render-tabanlı mı (sadece visual görür) çalıştığı kontrol edilmeli.
+
+---
+
 ## KARAR 1 — Kamera açısı ve görüş alanı
 
 **Problem**
