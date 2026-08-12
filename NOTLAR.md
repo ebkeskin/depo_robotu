@@ -486,6 +486,25 @@ Derlemeden sonra **yeni terminal** açılmalı (ortam tazelensin).
 - [ ] Sağlayıcı çağrısı tek bir fonksiyonda toplanmalı (geçiş kolaylığı)
 - [ ] Sprint 1 demo videosu (Ubuntu ekran kaydı: `Ctrl+Alt+Shift+R`)
 - [ ] Word belgesi bu notlardan güncellenecek
+- [ ] `kutu_tespit.py`'ye mavi kutu/raf direği ayrımı için `piksel_kat_hesapla`'nın
+      hesapladığı yanal (raf boyunca) konuma göre kenar-bandı filtresi eklendi
+      (`DIREK_X≈1.35 m`, tolerans 0.12 m). Doğru mesafede (1.4-1.8 m, rafa dik)
+      test edildi; çoğu direk parçası artık doğru reddediliyor. **Ama gerçek
+      mavi kutu (B2 örneğinde x=1.2 m) direğe (x=1.35 m) sadece 0.15 m
+      mesafede, ikisi de kadrajın en kenarında — bu mesafede geometrik kestirim
+      hatası bu 0.15 m'lik farktan büyük olabiliyor. Gerçek kutunun filtre
+      tarafından yanlışlıkla elenmediği doğrulanmadı**, en yakın aday tespitin
+      yükseklik uyumu da zayıftı (fark≈0.30 m, tolerans sınırında). Farklı
+      mesafe/açılarda ve mümkünse envanterdeki bilinen konumla çapraz kontrol
+      ile tekrar doğrulanmalı.
+- [ ] Raflar arkası kapalı değil (sadece 2 direk + 3 ince tabla) — kamera
+      boşluklardan bakınca aynı x'teki daha uzak bir rafı (örn. B2'nin 4 m
+      arkasındaki A2) görebiliyor. `piksel_kat_hesapla`'daki `x=mesafe`
+      düzlem varsayımı (LIDAR'ın **önündeki** rafa olan mesafeyi kullanır) bu
+      şekilde görülen uzak nesneler için tamamen geçersiz bir yükseklik/adres
+      üretir. B2 testinde envanterle eşleşmeyen küçük mavi/sarı tespitler
+      bulundu; en olası açıklama bu ama kaynağı kesin doğrulanmadı. Henüz kod
+      değişikliği yapılmadı, sadece gözlem/risk kaydı.
 
 ---
 
