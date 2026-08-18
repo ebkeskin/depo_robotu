@@ -15,6 +15,7 @@ setup(
         (os.path.join('share', package_name, 'worlds'), glob('worlds/*.sdf')),
         (os.path.join('share', package_name, 'launch'), glob('launch/*.py')),
         (os.path.join('share', package_name, 'araclar'), glob('araclar/envanter.json')),
+        (os.path.join('share', package_name, 'araclar'), glob('araclar/adres_veritabani.json')),
         (os.path.join('share', package_name, 'config'), glob('config/*.yaml')),
     ],
     install_requires=['setuptools'],
@@ -36,6 +37,7 @@ setup(
             'renk_probu = depo_robotu.renk_probu:main' ,
             'kutu_tespit = depo_robotu.kutu_tespit:main',
             'tarama_kontrol = depo_robotu.tarama_kontrol:main',
+            'adres_dogrula = depo_robotu.adres_dogrula:main',
         ],
     },
 )

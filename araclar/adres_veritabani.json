@@ -1,0 +1,79 @@
+{
+  "aciklama": "RAF bazinda (kutu/kat bazinda DEGIL) navigasyon hedefleri. Look-and-Move tasarimi robotun rafin onunde TEK bir noktada durup kamerayi dikey taradigini varsayiyor (bkz. PROJE_DOSYASI.md SS2E). kat/poz bilgisi sadece envanter raporlamasinda kullanilir, navigasyon hedefi degildir.",
+  "hesap_yontemi": "Her raf depo.sdf'te <pose> ile x,y merkezinde, RAF_DERINLIK=0.8 (yariisi 0.4). kutu_uret.py'deki RAFLAR sozlugundeki yon alani hangi kenara kutu yaslandigini (dolayisiyla robotun hangi taraftan baktigini) belirliyor: 'guney' -> on (kutulu) kenar = raf_y - 0.4, robot guneyden yaklasip KUZEYE bakar (yaw=+pi/2). 'kuzey' -> on kenar = raf_y + 0.4, robot kuzeyden yaklasip GUNEYE bakar (yaw=-pi/2). A sirasi (y=4) ile B sirasi (y=0) arasindaki 3.2 m koridor sadece A icin kullanilabilir (B'nin bu taraftaki kenari kutusuz arka yuz). B'nin on kenari (y=-0.4) ile C'nin on kenari (y=-3.6) ARASINDAKI 3.2 m koridor ise HER IKISI icin de gorus koridoru - bu yuzden B ve C ayni (x,y) durma noktasini paylasiyor, sadece yaw farkli. Robot koridor ORTASINA konumlandirildi (raf yuzunden 1.6 m) - SS8.6'daki minimum kullanisli tarama mesafesini (kat3 icin ~0.62m) rahat asiyor, guvenlik payi icin tercih edilen deger.",
+  "uyari": "Bu degerler depo.sdf TASARIM koordinatlaridir, Nav2 map frame'ine dogrudan gecirildi. SLAM haritasi (depo_haritasi.yaml) gercek Gazebo koordinatlarina gore kucuk bir donuklukle (~0.81-3.4 derece, turdan tura degisken) kaydedilmis olabilir. Bu yuzden asagidaki her giris 'dogrulanmadi' - adres_dogrula.py ile Nav2'ye gonderilip RViz/Gazebo'da gozle (robot rafa dik mi, tum katlari goruyor mu) kontrol edilmeden guvenilmemeli.",
+  "raf_konumlari": {
+    "A1": {
+      "x": -4.0,
+      "y": 2.0,
+      "yaw_rad": 1.5708,
+      "yon": "guney",
+      "durum": "dogrulanmadi",
+      "not": ""
+    },
+    "A2": {
+      "x": 0.0,
+      "y": 2.0,
+      "yaw_rad": 1.5708,
+      "yon": "guney",
+      "durum": "dogrulanmadi",
+      "not": ""
+    },
+    "A3": {
+      "x": 4.0,
+      "y": 2.0,
+      "yaw_rad": 1.5708,
+      "yon": "guney",
+      "durum": "dogrulanmadi",
+      "not": ""
+    },
+    "B1": {
+      "x": -4.0,
+      "y": -2.0,
+      "yaw_rad": 1.5708,
+      "yon": "guney",
+      "durum": "dogrulanmadi",
+      "not": "C1 ile ayni (x,y), sadece yaw farkli - ortak koridor"
+    },
+    "B2": {
+      "x": 0.0,
+      "y": -2.0,
+      "yaw_rad": 1.5708,
+      "yon": "guney",
+      "durum": "dogrulanmadi",
+      "not": "C2 ile ayni (x,y), sadece yaw farkli - ortak koridor"
+    },
+    "B3": {
+      "x": 4.0,
+      "y": -2.0,
+      "yaw_rad": 1.5708,
+      "yon": "guney",
+      "durum": "dogrulanmadi",
+      "not": "C3 ile ayni (x,y), sadece yaw farkli - ortak koridor"
+    },
+    "C1": {
+      "x": -4.0,
+      "y": -2.0,
+      "yaw_rad": -1.5708,
+      "yon": "kuzey",
+      "durum": "dogrulanmadi",
+      "not": "B1 ile ayni (x,y), sadece yaw farkli - ortak koridor"
+    },
+    "C2": {
+      "x": 0.0,
+      "y": -2.0,
+      "yaw_rad": -1.5708,
+      "yon": "kuzey",
+      "durum": "dogrulanmadi",
+      "not": "B2 ile ayni (x,y), sadece yaw farkli - ortak koridor"
+    },
+    "C3": {
+      "x": 4.0,
+      "y": -2.0,
+      "yaw_rad": -1.5708,
+      "yon": "kuzey",
+      "durum": "dogrulanmadi",
+      "not": "B3 ile ayni (x,y), sadece yaw farkli - ortak koridor"
+    }
+  }
+}
