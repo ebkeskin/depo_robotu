@@ -59,7 +59,10 @@ cevap verir.
 - Adres bazlı: "A1'in 3. katına git"
 - Arama: "kırmızı kutuyu bul" → birden fazla eşleşme, hangisi?
 - Sayım: "kaç yeşil kutu var?"
-- Tarif bazlı: "kırmızıydı, üstünde şu yazıyordu, adresini unuttum"
+- Tarif bazlı: "büyük kırmızı bir kutuydu, A sırasındaydı sanırım" → renk +
+  boyut + yaklaşık konum ipucuyla daraltılmış arama (mevcut kutu tasarımı
+  sadece renk+boyut üretiyor, üzerinde yazı/etiket yok — bkz. Sprint 7,
+  §12)
 
 **c) Aktif algılama.** Sabit kamera dar koridorda rafın üç katını birden
 göremiyor. Kameraya tilt ekseni eklendi; robot rafın önünde durup kamerayı
@@ -942,6 +945,10 @@ demo videosu, sunum.
 5. Çoklu hedef / görev sırası
 6. Pan ekseni (sağa-sola)
 
+**Not:** Gerçek metin/etiket bazlı tarif arama ("üstünde X yazıyordu") ancak
+1. veya 4. maddesi (QR/barkod veya OCR) eklenirse mümkün olur — şu anki kutu
+tasarımı (`kutu_uret.py`, sadece renk+boyut üretiyor) bunu desteklemiyor.
+
 ---
 
 # 8. SIRADAKİ İŞ: IŞIN-DÜZLEM KESİŞİMİ
@@ -1396,6 +1403,11 @@ kütüphaneleri var, Gazebo'nun grafiğini bozabilir.
 - [ ] Dar gecit (1.2 m yan gecit) testi sadece gozlemsel/tek denemeyle
       gecti (§7 Sprint 3, 3C) — birden fazla acidan ve baslangic
       konumundan sistematik olarak dogrulanmali.
+- [ ] Sorgu tipi tasariminda "tarif bazli" ornek basta metin/etiket bazli
+      dusunulmustu, mevcut kutu tasarimiyla (sadece renk+boyut) karsilanamiyor.
+      Sprint 4'te LLM sorgu tipleri sadece renk/boyut/adres kombinasyonlarina
+      gore tasarlanmali; coklu eslesme durumunda (orn. "13 kirmizi kutu var")
+      belirsizlik yonetimi asil odak noktasi olarak kaliyor, bu degismedi.
 ---
 
 # 13. RİSKLER VE UYARILAR
