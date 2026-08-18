@@ -1,8 +1,9 @@
 # PROJE DOSYASI — Yapay Zeka Destekli Akıllı Depo Robotu Simülasyonu
 
-**Son güncelleme:** 12 Ağustos 2026
-**Durum:** Sprint 2D — Nesne Tespiti (devam ediyor) — HSV renk tespiti + kat
-ataması çalışıyor, iki bilinen sınır durumu açık madde olarak kayıtlı (§12)
+**Son güncelleme:** 18 Ağustos 2026
+**Durum:** Sprint 3 — Navigasyon (devam ediyor) — Nav2 kuruldu ve çalışıyor,
+AMCL + Regulated Pure Pursuit ile otonom navigasyon başarılı; sırada adres
+veritabanı ve tarama pozisyonu belirleme var (§7, §12)
 
 > Bu dosya projenin tam devir belgesidir. Yeni bir sohbete bu dosyayı vererek
 > kaldığın yerden devam edebilirsin. Ne yapıldığı, neden yapıldığı, nasıl
@@ -96,17 +97,22 @@ Her katman kendi işini yapar.
 | Bileşen | Değer | Not |
 |---|---|---|
 | İşlemci | Intel i5 10. nesil | Yeterli |
-| Ekran kartı | NVIDIA GTX 1650 Ti | **nouveau** sürücü aktif, 4 GB VRAM |
+| Ekran kartı | NVIDIA GTX 1650 Ti | **nvidia-driver-595-open** aktif (nouveau'dan geçildi, bkz. not), 4 GB VRAM |
 | RAM | 16 GB | Yeterli |
-| Performans | Gazebo %85–99 real-time | Sorun yok |
+| Performans | Gazebo RTF ~%96 | Nav2/RPP sonrası tekrar ölçüldü, bkz. not |
 
 **Açık konu:** Laptop uzun süredir bakım görmedi (toz + termal macun).
 ~10 gün içinde yaptırılacak. O zamana kadar uzun süreli çalışmalarda
 `watch -n 2 sensors` ile sıcaklık izlenmeli. CPU sürekli 90 °C+ ise mola verilmeli.
 
-**nouveau sürücü notu:** Açık kaynak sürücü GPU sıcaklığını okuyamıyor (N/A) ve
-3B performansı NVIDIA'nın kapalı sürücüsüne göre düşük. Şimdilik sorun yok;
-YOLO eklenince performans sıkıntısı çıkarsa NVIDIA sürücüsüne geçiş değerlendirilir.
+**Sürücü notu (güncellendi, 18 Ağustos 2026):** nouveau açık kaynak sürücü
+GPU sıcaklığını okuyamıyor (N/A) ve Nav2/RPP ile artan hesaplama yükünde
+belirgin bir performans sorununa yol açtı (RTF ~%47'ye düştü). NVIDIA'nın
+kapalı sürücüsüne (`nvidia-driver-595-open`) geçildi ve GPU render
+offload için `.bashrc`'ye ortam değişkenleri eklendi
+(`__NV_PRIME_RENDER_OFFLOAD`, `__GLX_VENDOR_LIBRARY_NAME` vb.) — Gazebo
+render'ı artık NVIDIA kartı kullanıyor. Sonuç: RTF %47 → %96. YOLO
+eklendiğinde bu kurulumun devam ettiği doğrulanmalı.
 
 ## 2.3. Paralel proje: İDA (kritik kısıt)
 
@@ -775,22 +781,69 @@ Hareket halinde tespit yapılmaz — motion blur tespiti bozar.
 **Sprint 2 çıktısı:** Robot bir rafın önünde durup üç katı tarayabiliyor,
 gördüğü nesnelerin rengini, boyutunu ve **hangi katta olduğunu** raporluyor.
 
-## Sprint 3 — Navigasyon ve semantik harita ☐
+## Sprint 3 — Navigasyon ve semantik harita 🔄 DEVAM EDİYOR
 
-| # | İş |
-|---|---|
-| 1 | `slam_toolbox` ile haritalama, haritayı kaydetme |
-| 2 | Nav2 ayağa kaldırma, RViz'den hedef vererek doğrulama |
-| 3 | AMCL ile kayıtlı harita üzerinde konumlandırma |
-| 4 | Adres veritabanı: `A1-kat3-poz2 → (x, y, yaw)` |
-| 5 | Tarama pozisyonu: her raf için optimum durma noktası |
-| 6 | Adres verince robotun gidip **rafa dik yönelmesi** |
+| # | İş | Durum |
+|---|---|---|
+| 1 | `slam_toolbox` ile haritalama, haritayı kaydetme | ✅ |
+| 2 | Nav2 ayağa kaldırma, RViz'den hedef vererek doğrulama | ✅ |
+| 3 | AMCL ile kayıtlı harita üzerinde konumlandırma | ✅ |
+| 4 | Adres veritabanı: `A1-kat3-poz2 → (x, y, yaw)` | ☐ |
+| 5 | Tarama pozisyonu: her raf için optimum durma noktası | ☐ |
+| 6 | Adres verince robotun gidip **rafa dik yönelmesi** | ☐ |
 
 **Kritik:** Robotun rafa dik yönelmesi şu an elle yapılıyor. Nav2'de hedef poz
 (konum + yön) verilecek, sorun kendiliğinden çözülecek.
 
 **Nav2 uyarısı:** Koridor 3.2 m, yan geçitler 1.2 m. `inflation_radius` buna
 göre ayarlanmalı, yoksa "no valid path" hatası alınır.
+
+### 3A — Controller: DWB → Regulated Pure Pursuit geçişi (18 Ağustos 2026) ✅
+
+**Sorun — "git-dur-git" kekemeliği:** Nav2 ayağa kaldırılıp DWB local
+planner ile ilk navigasyon testleri yapıldığında robot düz bir koridorda
+bile sürekli tam hız ↔ tam dur arasında gidip geliyordu;
+`number_of_recoveries` sürekli artıyordu (behavior_server düzenli olarak
+devreye giriyordu).
+
+**Kök sebep:** Global rota ~1 Hz'de yeniden planlanıyor, AMCL konum tahmini
+de küçük miktarlarda titreşiyor. DWB'nin trajektori seçimi **ayrık**
+(sonlu örneklenmiş bir aday kümesinden puanla en iyisini seç) olduğu için,
+PathAlign/GoalAlign kritiklerinin puanı bu küçük rota/konum kaymalarında
+aday trajektoriler arasında ani sıçrama yapabiliyor — bir taramada "ileri
+git" kazanırken bir sonrakinde "dur/dön" kazanıyor, robot iki karar
+arasında salınıyor.
+
+**Çözüm:** `FollowPath` controller'ı `dwb_core::DWBLocalPlanner`'dan
+`nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController`'a
+geçirildi (bkz. `config/nav2_params_depo.yaml`). RPP tek bir lookahead
+noktasına göre sürekli/yumuşak bir eğrilik hesabı yaptığı için küçük rota
+kaymalarına DWB kadar duyarlı değil. Sorun büyük ölçüde çözüldü. Eski DWB
+konfigürasyonu dosyada yorum satırı olarak saklandı (geri dönmek gerekirse).
+
+### 3B — Hız artışı (simülasyon-özel karar) ⚠️ AÇIK NOT
+
+`desired_linear_vel` 0.26 → 1.0 m/s'e çıkarıldı, `velocity_smoother`'ın
+`max_velocity`/`max_accel` değerleri de buna eşlendi
+(`config/nav2_params_depo.yaml`).
+
+**Gerekçe:** Simülasyonda gerçek bir motor/redüktör kısıtı yok — 0.26 m/s
+sınırı TB3 waffle_pi'nin **gerçek donanımına** ait bir limit (eski DWB
+konfigürasyonundaki `max_speed_xy: 0.26` yorumuna bkz.), simülasyon fizik
+motorunu bağlamıyor. Test döngüsünü hızlandırmak için sim-içi hız artırıldı.
+
+**⚠️ Bu karar gerçek robota taşınamaz.** Rapor/sunumda şeffaf şekilde
+belirtilmeli: 1.0 m/s sadece simülasyon konfigürasyonu, TB3 waffle_pi
+gerçek donanımda 0.26 m/s ile sınırlı. Gerçek robota geçilirse
+`desired_linear_vel` ve `velocity_smoother` limitleri 0.26 m/s'e geri
+alınmalı.
+
+### 3C — Dar geçit testi (gözlemsel, sistematik değil) 🔄
+
+1.2 m'lik yan geçitlerden (raflar arası) robot gözlemsel olarak sorunsuz
+geçti (tek deneme, tek açı). **Sistematik/tekrarlı test edilmedi** —
+farklı giriş açılarından, farklı başlangıç konumlarından tekrarlanmalı.
+Bkz. §12 açık madde.
 
 ## Sprint 4 — LLM komut çözümleme ☐
 
@@ -1333,6 +1386,16 @@ kütüphaneleri var, Gazebo'nun grafiğini bozabilir.
       dokunulmadi, sadece orkestrasyon katmani tarama_kontrol.py bu
       farki `fazla_tespit` alaniyla raporda gosteriyor). Sprint 6
       metrik tasarimini etkiler, bkz. §7 Metrikler notu.
+
+- [ ] RPP'nin `min_approach_linear_velocity` (0.05) ile progress_checker'in
+      `movement_time_allowance` (15.0) arasindaki marj hala dar (bkz.
+      `config/nav2_params_depo.yaml`, §7 Sprint 3). Hedefe cok yaklasip
+      robot yavaslarken ara sira yanlis "ilerleme yok" alarmi verebiliyor.
+      Izlenmeli; gerekirse `movement_time_allowance` artirilmali veya
+      `required_movement_radius` kucultulmeli.
+- [ ] Dar gecit (1.2 m yan gecit) testi sadece gozlemsel/tek denemeyle
+      gecti (§7 Sprint 3, 3C) — birden fazla acidan ve baslangic
+      konumundan sistematik olarak dogrulanmali.
 ---
 
 # 13. RİSKLER VE UYARILAR
