@@ -45,7 +45,13 @@ slam_toolbox:
     use_scan_matching: true
     use_scan_barycenter: true
     minimum_travel_distance: 0.5
-    minimum_travel_heading: 0.5
+    # Onceki deger (0.5 rad / ~28.6 derece) hizli/sert donuslerde ardisik
+    # keyframe'ler arasindaki gercek acisal sapmayi coarse_search_angle_offset
+    # penceresinin disina tasiriyordu; bu da simetrik raf grid'inde donmus-ama-
+    # kabul-edilebilir yanlis eslesmelere (haritada capraz "hayalet duvar")
+    # yol aciyordu. Donus sirasinda daha sik scan eklenerek ardisik scanlar
+    # arasi ortusme yuksek tutuluyor.
+    minimum_travel_heading: 0.17
     scan_buffer_size: 10
     scan_buffer_maximum_scan_distance: 10.0
     link_match_minimum_response_fine: 0.1
@@ -73,10 +79,16 @@ slam_toolbox:
 
     # Scan Matcher Parameters
     distance_variance_penalty: 0.5
-    angle_variance_penalty: 1.0
+    # 1.0 -> 0.35: acisal sapma konumsal sapmadan daha gevsek cezalandiriliyordu,
+    # bu da oteleme olarak iyi ortusen ama acisal olarak kaymis (simetrik raf
+    # grid'inde donmus) bir adayin dogru esleseyi gecmesine izin veriyordu.
+    angle_variance_penalty: 0.35
 
     fine_search_angle_offset: 0.00349
-    coarse_search_angle_offset: 0.349
+    # 0.349 (~20 derece yari-genislik) -> 0.60 (~34 derece): hizli/sert donuste
+    # (teleop ~1-1.8 rad/s'ye ulasabiliyor) gercek odometri sapmasi 20 derecelik
+    # pencereyi asabiliyordu; pencere genisletildi.
+    coarse_search_angle_offset: 0.60
     coarse_angle_resolution: 0.0349
     minimum_angle_penalty: 0.9
     minimum_distance_penalty: 0.5

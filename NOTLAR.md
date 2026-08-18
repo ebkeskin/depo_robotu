@@ -470,6 +470,54 @@ hala dogru 2 karton, direk filtresinde sapma yok).
 
 ---
 
+## SORUN 14 — Robot duvara/rafa sıkışıp döndürülünce haritada hayalet geometri
+
+**Belirti**
+Robot fiziksel olarak bir duvara/rafa çarpıp sıkıştığında ve o pozisyonda
+teleop ile döndürmeye (`a`/`d`) devam edildiğinde, haritada bozulma/hayalet
+geometri oluşuyor — daha önce dönüş sırasında görülen "çapraz hayalet duvar"
+deseninden (bkz. `config/mapper_params_depo.yaml`'daki
+`minimum_travel_heading`, `coarse_search_angle_offset`,
+`angle_variance_penalty` ayarları) farklı ve bağımsız bir mekanizma.
+
+**Sebep**
+`turtlebot3_simulations/turtlebot3_gazebo/models/turtlebot3_waffle_pi/model.sdf`
+içindeki `gz-sim-diff-drive-system` plugin'i (satır ~512-534) odometriyi
+gövdenin gerçek dünya pozisyonundan değil, `wheel_left_joint`/
+`wheel_right_joint`'in ölçülen açısal hızından kinematik olarak
+hesaplıyor. Bu iki teker joint'inde (kamera joint'inin aksine, orada
+`<limit><effort>10</effort>` var) **hiçbir `<effort>` (tork) limiti
+tanımlı değil** — yani gövde bir engele sıkışıp fiziksel tepki kuvveti
+alsa bile ODE'nin hız motoru komutlanan açısal hıza koşulsuz ulaşmaya
+çalışıyor. Sonuç: tekerlekler "komutlandığı gibi dönüyormuş" gibi
+raporlanıyor, diff-drive plugin bunu entegre edip `/odom`'a fantom
+hareket olarak yazıyor, gövde yerinde saysa da SLAM'e "robot hareket
+etti" diye yanlış bir prior besleniyor. `mapper_params_depo.yaml`'daki
+`minimum_travel_distance`/`minimum_travel_heading` eşikleri bu durumu
+engellemiyor, sadece geciktiriyor — sıkışma yeterince sürerse fantom
+odom eşikleri de aşıp kötü bir scan-match'e yol açıyor.
+
+Teker-zemin sürtünmesi (`mu`/`mu2 = 100000`, aynı dosyada wheel
+collision'larda) neredeyse sonsuz olduğu için normal (çarpışmasız)
+sürüşte klasik "teker kayması" bu mekanizmayla açıklanmıyor; sürüş
+sırasında ara sıra görülen küçük bozulmalar muhtemelen ayrı bir etki
+(dönüş/arama-penceresi kalıntısı veya raf kenarına hafif temas).
+
+**Kök neden — kapsam dışı bırakıldı**
+Gerçek düzeltme `turtlebot3_simulations` paketindeki `model.sdf`'e teker
+joint'leri için gerçekçi bir `<effort>` limiti eklemek olurdu, ama bu
+`depo_robotu` dışında bir sibling pakette workspace-level patch
+gerektiriyor (bkz. CLAUDE.md "Workspace-level patches", Y-serisi
+patch'ler). Sprint 1-3 altyapı zaman kutusunu aşmamak için şimdilik
+ertelendi.
+
+**Geçici çözüm (davranışsal)**
+Haritalama sırasında robot bir yere çarparsa hemen `s` (force stop) ile
+durulmalı; sıkışmış haldeyken dönmeye/hareket komutu vermeye devam
+edilmemeli. Bkz. SORUN 10 — aynı `s`/boşluk force-stop mekanizması.
+
+---
+
 ## KARAR 1 — Kamera açısı ve görüş alanı
 
 **Problem**
