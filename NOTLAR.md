@@ -518,6 +518,39 @@ edilmemeli. Bkz. SORUN 10 — aynı `s`/boşluk force-stop mekanizması.
 
 ---
 
+## SORUN 15 — `data_files` (yaml/json/sdf) install altında symlink DEĞİL, kopya
+
+**Belirti**
+`config/nav2_params_depo.yaml` (veya `araclar/adres_veritabani.json`,
+`worlds/depo.sdf`) kaynakta düzenlenip `colcon build --symlink-install`
+çalıştırılmadan test edilirse, Nav2/node'lar **eski değeri** kullanmaya
+devam eder — hata vermez, davranış sessizce "değişmemiş" görünür. Bu,
+`desired_linear_vel` hız ayarında bir "regresyon" şüphesine yol açmıştı
+(2026-08-20); teşhis sonucu kaynak ile install kopyası her ikisi de aynı
+(`1.0`) çıktı — o an aktif bir sorun yoktu, ama mekanizma gerçek.
+
+**Sebep**
+`--symlink-install` bayrağı `ament_python` paketlerinde sadece Python
+modüllerini (`depo_robotu/*.py`) symlink'liyor. `setup.py`'daki
+`data_files=` ile eklenen dosyalar (config/*.yaml, araclar/*.json,
+worlds/*.sdf, launch/*.py) **her `colcon build`'da düz kopyalanıyor**,
+symlink değil (`ls -la ~/staj_ws/install/depo_robotu/share/depo_robotu/...`
+ile doğrulanabilir — `-rw-r--r--`, `lrwxrwxrwx` değil). Bu, colcon/
+setuptools'un `ament_python` + `data_files` kombinasyonunda bilinen bir
+sınırlama, bu projeye özgü bir hata değil.
+
+**Kural**
+`config/`, `araclar/`, `worlds/` altındaki herhangi bir dosyayı
+düzenledikten sonra, çalıştırmadan/test etmeden önce MUTLAKA:
+```bash
+colcon build --symlink-install --packages-select depo_robotu
+```
+Aksi halde install/ altındaki eski kopya sessizce kullanılmaya devam eder.
+Şüphede kalırsan: `diff <kaynak> ~/staj_ws/install/depo_robotu/share/depo_robotu/<aynı yol>`
+ile ikisini karşılaştır.
+
+---
+
 ## KARAR 1 — Kamera açısı ve görüş alanı
 
 **Problem**
