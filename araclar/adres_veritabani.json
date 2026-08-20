@@ -4,12 +4,12 @@
   "uyari": "Bu dosyadaki ilk 9 deger (commit 1584ecf) gercek dunya (Gazebo world frame) koordinatlarindan hesaplanmisti ve map/world frame kaymasi nedeniyle YANLIS cikti - bkz. PROJE_DOSYASI.md SS12. Nav2 hedefleri map frame'inde yorumlanir, ama SLAM haritalamasi robot spawn noktasindan basladigi icin map frame'in origini gercek dunya originiyle CAKISMIYOR (bkz. maps/depo_haritasi.yaml origin alani). Degerler artik konum_yakala.py ile elle olculerek dolduruluyor: robot teleop ile rafin tam onune surulur, o anda AMCL'in inandigi map-frame pose'u (tf: map->base_link) okunup dogrudan buraya yazilir. Hesaplama yok, olcum var.",
   "raf_konumlari": {
     "A1": {
-      "x": null,
-      "y": null,
-      "yaw_rad": null,
+      "x": -3.826531440693342,
+      "y": 7.195916054995565,
+      "yaw_rad": 1.553207758268832,
       "yon": "guney",
-      "durum": "dogrulanmadi",
-      "not": ""
+      "durum": "dogrulandi",
+      "not": "elle surulup tf'den yakalandi, 2026-08-20"
     },
     "A2": {
       "x": null,
