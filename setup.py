@@ -38,6 +38,7 @@ setup(
             'kutu_tespit = depo_robotu.kutu_tespit:main',
             'tarama_kontrol = depo_robotu.tarama_kontrol:main',
             'adres_dogrula = depo_robotu.adres_dogrula:main',
+            'konum_yakala = depo_robotu.konum_yakala:main',
         ],
     },
 )

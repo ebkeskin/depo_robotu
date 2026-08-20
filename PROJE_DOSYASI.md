@@ -1,6 +1,6 @@
 # PROJE DOSYASI — Yapay Zeka Destekli Akıllı Depo Robotu Simülasyonu
 
-**Son güncelleme:** 18 Ağustos 2026
+**Son güncelleme:** 20 Ağustos 2026
 **Durum:** Sprint 3 — Navigasyon (devam ediyor) — Nav2 kuruldu ve çalışıyor,
 AMCL + Regulated Pure Pursuit ile otonom navigasyon başarılı; sırada adres
 veritabanı ve tarama pozisyonu belirleme var (§7, §12)
@@ -1408,6 +1408,40 @@ kütüphaneleri var, Gazebo'nun grafiğini bozabilir.
       Sprint 4'te LLM sorgu tipleri sadece renk/boyut/adres kombinasyonlarina
       gore tasarlanmali; coklu eslesme durumunda (orn. "13 kirmizi kutu var")
       belirsizlik yonetimi asil odak noktasi olarak kaliyor, bu degismedi.
+
+- [x] KOK SEBEP BULUNDU VE DUZELTILDI (20 Agustos 2026) — adres_veritabani.json
+      koordinatlari yanlisti, "A1'e git dedi C1'e gitti" gozlemi bu yuzdenmis:
+
+      Adres veritabanindaki ilk 9 raf koordinati (commit 1584ecf) depo.sdf'teki
+      GERCEK DUNYA (Gazebo world frame) koordinatlarindan hesaplanmisti. Ama
+      Nav2 hedefleri "map" frame'inde yorumlaniyor, ve SLAM haritalamasi robot
+      spawn noktasindan (gercek dunya x=0, y=-5) basladigi icin map frame'in
+      kendi origini gercek dunya originiyle CAKISMIYOR (bkz. maps/depo_haritasi.yaml
+      origin: [-5.91, -1.21, 0] — nav2_costmap_2d log'undaki "Sensor origin...
+      map bounds" mesaji ve tf2_echo karsilastirmasiyla deneysel olarak
+      dogrulandi). Onceki oturumda "A1 yerine C1'e gitti" seklinde gozlemlenen
+      davranisin sebebi buymus — o sirada one surulen "SLAM'in simetrik
+      grid'i AMCL'i kandiriyor" teshisi YANLISTI, gercek sebep bu koordinat
+      kaymasiydi.
+
+      DUZELTME YONTEMI (hesaplama degil, olcum): (y+5) gibi bir formulle
+      duzeltmek yerine (bu da bir tahmindir, hata payi tasir), yeni bir arac
+      yazildi: `konum_yakala.py`. Robot teleop ile ELLE, gozle rafin tam
+      onune surulur; o anda AMCL'in inandigi GERCEK map-frame pose'u (tf:
+      map->base_link) okunup DOGRUDAN adres_veritabani.json'a yazilir.
+      adres_veritabani.json'daki eski 9 deger silindi (x/y/yaw artik null),
+      `durum: dogrulanmadi` yapildi; raflar tek tek konum_yakala.py ile
+      yeniden dolduruluyor.
+
+      ONEMLI GENEL DERS (ileride baska koordinat isi yapilirsa hatirlanmali):
+      Nav2'ye / SLAM haritasina verilen her koordinat "map" frame'inde
+      yorumlanir. Bu, ayni sahnedeki gercek dunya (Gazebo world) koordinatlariyla
+      AYNI OLACAK DIYE BIR GARANTI YOKTUR — map frame'in origini SLAM'in
+      haritalamaya basladigi ana (genelde robotun spawn pozisyonu) baglidir,
+      bu dogal bir sonuctur, hata degildir, ama unutulursa aynen bu hataya
+      tekrar dusulur. Simulasyonda "world koordinatlarini biliyorum" hicbir
+      zaman "map koordinatlarini biliyorum" anlamina gelmez — ikisi olculerek
+      veya acikca TF ile birbirine baglanarak eslenmelidir.
 ---
 
 # 13. RİSKLER VE UYARILAR
