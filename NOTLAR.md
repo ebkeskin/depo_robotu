@@ -530,14 +530,19 @@ devam eder — hata vermez, davranış sessizce "değişmemiş" görünür. Bu,
 (`1.0`) çıktı — o an aktif bir sorun yoktu, ama mekanizma gerçek.
 
 **Sebep**
-`--symlink-install` bayrağı `ament_python` paketlerinde sadece Python
-modüllerini (`depo_robotu/*.py`) symlink'liyor. `setup.py`'daki
-`data_files=` ile eklenen dosyalar (config/*.yaml, araclar/*.json,
-worlds/*.sdf, launch/*.py) **her `colcon build`'da düz kopyalanıyor**,
-symlink değil (`ls -la ~/staj_ws/install/depo_robotu/share/depo_robotu/...`
-ile doğrulanabilir — `-rw-r--r--`, `lrwxrwxrwx` değil). Bu, colcon/
-setuptools'un `ament_python` + `data_files` kombinasyonunda bilinen bir
-sınırlama, bu projeye özgü bir hata değil.
+`setup.py`'daki `data_files=` ile eklenen dosyalar (config/*.yaml,
+araclar/*.json, worlds/*.sdf, launch/*.py) **her `colcon build`'da düz
+kopyalanıyor**, symlink değil (`ls -la
+~/staj_ws/install/depo_robotu/share/depo_robotu/...` ile doğrulanabilir —
+`-rw-r--r--`, `lrwxrwxrwx` değil). Bu, colcon/setuptools'un `ament_python`
++ `data_files` kombinasyonunda bilinen bir sınırlama, bu projeye özgü bir
+hata değil.
+
+> **Düzeltme (2026-08-20, SORUN 16):** Bu SORUN'un ilk yazımında burada
+> "`--symlink-install` bayrağı Python modüllerini symlink'liyor, sadece
+> `data_files` kopyalanıyor" deniyordu — bu YANLIŞ çıktı. Bu ortamda
+> (setuptools 58.2.0) Python modülleri de symlink değil kopya. Detay:
+> SORUN 16.
 
 **Kural**
 `config/`, `araclar/`, `worlds/` altındaki herhangi bir dosyayı
@@ -548,6 +553,46 @@ colcon build --symlink-install --packages-select depo_robotu
 Aksi halde install/ altındaki eski kopya sessizce kullanılmaya devam eder.
 Şüphede kalırsan: `diff <kaynak> ~/staj_ws/install/depo_robotu/share/depo_robotu/<aynı yol>`
 ile ikisini karşılaştır.
+
+---
+
+## SORUN 16 — Python modülleri de install altında symlink DEĞİL, kopya (`__file__` tuzağı)
+
+**Belirti**
+`konum_yakala` çalıştırılınca:
+```
+FileNotFoundError: [Errno 2] No such file or directory:
+'/home/ebk/staj_ws/install/depo_robotu/lib/python3.10/site-packages/araclar/adres_veritabani.json'
+```
+`adres_veritabani_araclari.py`'deki `VERITABANI_YOLU`, `Path(__file__).resolve().parent.parent /
+'araclar' / 'adres_veritabani.json'` ile hesaplanıyordu; bu, `__file__`'ın
+install ortamında kaynak ağaçtaki (`src/`) gerçek konumu vereceği
+varsayımına dayanıyordu — koddaki eski yorum tam olarak bunu iddia
+ediyordu.
+
+**Sebep**
+SORUN 15'te belgelenenin aksine, bu varsayım da yanlış çıktı: ROS 2
+Humble'ın `ament_python` derleyicisi, setuptools 58.2.0 (bkz. SORUN 6)
+ile eski `setup.py develop` yöntemini kullanıyor. Bu yöntem Python
+modüllerini `src → build/lib/depo_robotu → install/.../site-packages/depo_robotu`
+zincirinde **gerçekten kopyalıyor**, `--symlink-install` bayrağına rağmen
+hiçbir aşamada symlink oluşturmuyor (`ls -la` ile doğrulandı: hepsi
+`-rw-rw-r--`, `readlink -f` her dosya için kendi yolunu döndürüyor).
+Yani `__file__.resolve()` install ortamında kendi install kopyasının
+`site-packages/` içindeki konumunu veriyor, kaynak ağaçtaki konumu değil
+— `.parent.parent` de yanlış bir üst dizine (`site-packages/`) çıkıyor.
+
+**Kural / Çözüm**
+`__file__`'a göre kaynak ağaca dönmeye ÇALIŞMA — install ortamında güvenilir
+değil. Bunun yerine `ament_index_python.packages.get_package_share_directory`
+ile güvenilir install share dizinini bul, sonra colcon'un standart
+workspace düzenine göre (`<ws>/install/<pkg>` ↔ `<ws>/src/<pkg>`) `install`
+segmentini `src` ile değiştirerek kaynağa geri dön (uygulaması:
+`adres_veritabani_araclari.py`'deki `_kaynak_veritabani_yolu()`). Bu,
+`adres_guncelle.py`'nin "share kopyasını değil kaynağı düzenle" niyetini
+korur — install share kopyasına yazmak, hem git'e girmez hem de SORUN
+15 gereği bir sonraki `colcon build`'da sessizce üzerine yazılabilir.
+`ament_index_python` bu yüzden `package.xml`'e `<depend>` olarak eklendi.
 
 ---
 

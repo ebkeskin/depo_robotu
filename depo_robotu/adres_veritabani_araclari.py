@@ -10,10 +10,39 @@ kacinmak icin.
 import json
 from pathlib import Path
 
-# Bu dosya depo_robotu/depo_robotu/ altinda; araclar/ bir ust dizinin
-# kardesi. symlink-install ile de calisir cunku kurulan dosya kaynaga
-# symlink'lenir, boylece __file__ yine src/ agacindaki gercek konumu verir.
-VERITABANI_YOLU = Path(__file__).resolve().parent.parent / 'araclar' / 'adres_veritabani.json'
+from ament_index_python.packages import get_package_share_directory
+
+
+def _kaynak_veritabani_yolu():
+    """araclar/adres_veritabani.json KAYNAK (git'e giren) dosyasinin yolunu bulur.
+
+    NOT: __file__ burada guvenilir degil - ament_python + setuptools 58.2.0
+    (bkz. NOTLAR.md SORUN 6) `setup.py develop` kullanarak Python
+    modullerini src -> build/lib -> install/site-packages zincirinde
+    GERCEKTEN KOPYALIYOR, --symlink-install'a ragmen symlink'lemiyor (SORUN
+    15'teki data_files sorunuyla ayni kok neden, modulleri de etkiliyor).
+    Yani __file__.resolve() install ortaminda kendi kopyasinin site-packages
+    icindeki konumunu verir, kaynak agactaki konumu degil.
+
+    Bunun yerine get_package_share_directory ile guvenilir install share
+    dizini bulunuyor, sonra colcon'un standart workspace duzenine gore
+    (<ws>/install/<pkg> <-> <ws>/src/<pkg>, bkz. CLAUDE.md) 'install'
+    segmenti 'src' ile degistirilerek KAYNAK dosyaya geri donuluyor - amac
+    adres_guncelle.py'nin de belirttigi gibi share kopyasini degil kaynagi
+    duzenlemek, boylece degisiklik git'e girer. Bu duzen bulunamazsa (farkli
+    bir workspace duzeni), guvenli dusus olarak share kopyasi kullanilir.
+    """
+    share_dizini = Path(get_package_share_directory('depo_robotu'))
+    for ata in share_dizini.parents:
+        if ata.name == 'install':
+            kaynak = ata.parent / 'src' / 'depo_robotu' / 'araclar' / 'adres_veritabani.json'
+            if kaynak.exists():
+                return kaynak
+            break
+    return share_dizini / 'araclar' / 'adres_veritabani.json'
+
+
+VERITABANI_YOLU = _kaynak_veritabani_yolu()
 
 
 def veritabani_oku(veritabani_yolu=VERITABANI_YOLU):
