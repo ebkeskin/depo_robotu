@@ -1,9 +1,8 @@
 # PROJE DOSYASI — Yapay Zeka Destekli Akıllı Depo Robotu Simülasyonu
 
 **Son güncelleme:** 20 Ağustos 2026
-**Durum:** Sprint 3 — Navigasyon (devam ediyor) — Nav2 kuruldu ve çalışıyor,
-AMCL + Regulated Pure Pursuit ile otonom navigasyon başarılı; sırada adres
-veritabanı ve tarama pozisyonu belirleme var (§7, §12)
+**Durum:** Sprint 3 — Nav2 navigasyonu, adres doğrulama devam ediyor
+(6/9 raf test edildi, A3 açık sorun) (§7, §12)
 
 > Bu dosya projenin tam devir belgesidir. Yeni bir sohbete bu dosyayı vererek
 > kaldığın yerden devam edebilirsin. Ne yapıldığı, neden yapıldığı, nasıl
@@ -791,7 +790,7 @@ gördüğü nesnelerin rengini, boyutunu ve **hangi katta olduğunu** raporluyor
 | 1 | `slam_toolbox` ile haritalama, haritayı kaydetme | ✅ |
 | 2 | Nav2 ayağa kaldırma, RViz'den hedef vererek doğrulama | ✅ |
 | 3 | AMCL ile kayıtlı harita üzerinde konumlandırma | ✅ |
-| 4 | Adres veritabanı: `A1-kat3-poz2 → (x, y, yaw)` | ☐ |
+| 4 | Adres veritabanı: `A1-kat3-poz2 → (x, y, yaw)` | 🔄 (6/9 test edildi, A3 açık) |
 | 5 | Tarama pozisyonu: her raf için optimum durma noktası | ☐ |
 | 6 | Adres verince robotun gidip **rafa dik yönelmesi** | ☐ |
 
@@ -847,6 +846,45 @@ alınmalı.
 geçti (tek deneme, tek açı). **Sistematik/tekrarlı test edilmedi** —
 farklı giriş açılarından, farklı başlangıç konumlarından tekrarlanmalı.
 Bkz. §12 açık madde.
+
+### 3D — Adres veritabanı: iki aşamalı hesaplama + AMCL yanlış-kilitlenme keşfi (20 Ağustos 2026) 🔄
+
+**Adım 1 — 2-nokta rigid-transform kalibrasyonu:** `konum_yakala.py` ile
+her rafı tek tek elle sürüp ölçmek yerine (9 sürüş), sadece 2 referans raf
+(A1 + C3) elle ölçüldü; bu iki ölçümden katı (rotasyon + öteleme) bir
+world→map dönüşümü çıkarılıp geri kalan 7 rafın `depo.sdf` tasarım
+koordinatlarına uygulandı (`iki_nokta_kalibrasyon.py`, commit `f1e6695`).
+Sonuç: B2 gibi merkeze yakın raflarda iyi çalıştı, ama A3 gibi uzak
+köşelerde **çok yanlış** çıktı — SLAM haritası tam rijit değil
+(loop-closure distorsiyonu), tek bir katı dönüşüm tüm haritayı
+açıklayamıyor.
+
+**Adım 2 — haritadan_adres_cikar.py:** Bunun yerine kayıtlı SLAM
+haritasından (`depo_haritasi.pgm`) doğrudan görüntü işleme (kontur
+tespiti) ile raf konumları yeniden hesaplandı. Çok daha isabetli çıktı:
+A1'de 0.23 m, C3'te 0.32 m sapma (elle ölçülen gerçek değerlere göre) —
+2-nokta yönteminden kat kat iyi. `adres_veritabani.json`'daki 7 raf artık
+`durum: haritadan_cikarildi` ile bu yöntemden geliyor; A1 ve C3
+`konum_yakala.py` ile elle ölçülüp `dogrulandi` olarak kaldı.
+
+**KRİTİK KEŞİF — AMCL yanlış-ama-kendinden-emin kilitlenmesi:** Depo
+simetrik bir 3×3 raf grid'i olduğu için, AMCL bazen **yanlış** ama
+**düşük kovaryanslı** (yani kendinden emin görünen) bir konum hipotezine
+kilitlenebiliyor. Bir testte robotun gerçek (Gazebo) pozisyonu ile AMCL'in
+inandığı pozisyon arasında 1.37 m / 154° fark ölçüldü, ve AMCL'in
+kovaryansı bunu şüpheli göstermiyordu — yani "belirsizim" sinyali
+vermeden sessizce yanlış lokalize olabiliyor. **Düzeltme:**
+`/reinitialize_global_localization` servisi çağrılıp, Gazebo'dan okunan
+GERÇEK pose RViz'de tıklanarak değil **sayısal olarak** `/initialpose`'a
+gönderiliyor.
+
+**Test durumu (Nav2 hedefe gitme, 9 raf):**
+
+| Raf | Sonuç |
+|---|---|
+| A1, A2, C3 | ✅ başarılı doğrulandı |
+| A3 | ❌ lokalizasyon düzeltmesinden SONRA BILE tekrar tekrar başarısız (`Failed to make progress`, `ABORTED`) — kök sebep net değil, **açık sorun** (bkz. §12) |
+| B1, B2, B3, C1, C2 | ☐ henüz test edilmedi |
 
 ## Sprint 4 — LLM komut çözümleme ☐
 
@@ -1442,6 +1480,30 @@ kütüphaneleri var, Gazebo'nun grafiğini bozabilir.
       tekrar dusulur. Simulasyonda "world koordinatlarini biliyorum" hicbir
       zaman "map koordinatlarini biliyorum" anlamina gelmez — ikisi olculerek
       veya acikca TF ile birbirine baglanarak eslenmelidir.
+
+- [ ] A3 rafi ACIK SORUN (20 Agustos 2026, bkz. §7 Sprint 3 3D): hedef
+      koordinati haritadan_adres_cikar.py + costmap analiziyle guvenli
+      dogrulandi, AMCL yanlis-kilitlenme sorunu da /reinitialize_global_localization
+      + sayisal /initialpose ile duzeltildi, ama Nav2 navigasyonu A3'e hala
+      tekrar tekrar basarisiz oluyor (Failed to make progress, ABORTED).
+      Kok sebep bulunamadi. Kalan raflar (B1, B2, B3, C1, C2) test edilip
+      A3'un IZOLE bir sorun mu (orn. o bolgede costmap/engel problemi) yoksa
+      genel bir kalicilik/lokalizasyon-tekrar-kayma sorununun (AMCL zamanla
+      tekrar mi kayiyor) belirtisi mi oldugu netlestirilmeli.
+
+- [ ] data_files (yaml/json/sdf) `--symlink-install` ile symlink OLMUYOR,
+      kopyalaniyor (bkz. NOTLAR.md SORUN 15, SORUN 16 — Python modulleri de
+      ayni sekilde etkileniyor). Her config/json degisikliginden sonra
+      `colcon build` sart, yoksa install altindaki eski kopya kullanilir.
+      Sadece hatirlatma.
+
+- [ ] KURAL: Nav2 testinden ONCE HER SEFERINDE lokalizasyon dogrulamasi
+      yapilmali (tf2_echo map->base_link ile Gazebo'daki gercek pose
+      karsilastirilmali). Simetrik 3x3 depo grid'i yuzunden AMCL, dusuk
+      kovaryansla (yani supheli davranmadan) sessizce yanlis lokalize
+      olabiliyor (bkz. §7 Sprint 3 3D) — bu kontrol atlanirsa navigasyon
+      basarisizliklarinin kaynagi (yanlis hedef mi, gercekten lokalizasyon
+      mu) ayirt edilemez.
 ---
 
 # 13. RİSKLER VE UYARILAR

@@ -12,68 +12,68 @@
       "not": "elle surulup tf'den yakalandi, 2026-08-20"
     },
     "A2": {
-      "x": null,
-      "y": null,
-      "yaw_rad": null,
+      "x": 0.06499999999999995,
+      "y": 6.915000000000001,
+      "yaw_rad": 1.5707963267948966,
       "yon": "guney",
-      "durum": "dogrulanmadi",
-      "not": ""
+      "durum": "haritadan_cikarildi",
+      "not": "SLAM haritasindan (depo_haritasi.pgm) goruntu isleme ile cikarildi"
     },
     "A3": {
-      "x": null,
-      "y": null,
-      "yaw_rad": null,
+      "x": 4.09,
+      "y": 6.890000000000001,
+      "yaw_rad": 1.5707963267948966,
       "yon": "guney",
-      "durum": "dogrulanmadi",
-      "not": ""
+      "durum": "haritadan_cikarildi",
+      "not": "SLAM haritasindan (depo_haritasi.pgm) goruntu isleme ile cikarildi"
     },
     "B1": {
-      "x": null,
-      "y": null,
-      "yaw_rad": null,
+      "x": -3.9943876477701714,
+      "y": 3.064697573661867,
+      "yaw_rad": 1.529153684678183,
       "yon": "guney",
-      "durum": "dogrulanmadi",
-      "not": ""
+      "durum": "haritadan_cikarildi",
+      "not": "SLAM haritasindan (depo_haritasi.pgm) goruntu isleme ile cikarildi"
     },
     "B2": {
-      "x": null,
-      "y": null,
-      "yaw_rad": null,
+      "x": -0.009999999999999787,
+      "y": 2.99,
+      "yaw_rad": 1.5707963267948966,
       "yon": "guney",
-      "durum": "dogrulanmadi",
-      "not": ""
+      "durum": "haritadan_cikarildi",
+      "not": "SLAM haritasindan (depo_haritasi.pgm) goruntu isleme ile cikarildi"
     },
     "B3": {
-      "x": null,
-      "y": null,
-      "yaw_rad": null,
+      "x": 3.9650000000000007,
+      "y": 2.965,
+      "yaw_rad": 1.5707963267948966,
       "yon": "guney",
-      "durum": "dogrulanmadi",
-      "not": ""
+      "durum": "haritadan_cikarildi",
+      "not": "SLAM haritasindan (depo_haritasi.pgm) goruntu isleme ile cikarildi"
     },
     "C1": {
-      "x": null,
-      "y": null,
-      "yaw_rad": null,
+      "x": -3.9150478735636742,
+      "y": 3.137828646594504,
+      "yaw_rad": -1.5930150094043807,
       "yon": "kuzey",
-      "durum": "dogrulanmadi",
-      "not": ""
+      "durum": "haritadan_cikarildi",
+      "not": "SLAM haritasindan (depo_haritasi.pgm) goruntu isleme ile cikarildi"
     },
     "C2": {
-      "x": null,
-      "y": null,
-      "yaw_rad": null,
+      "x": -0.0349999999999997,
+      "y": 3.015,
+      "yaw_rad": -1.5707963267948966,
       "yon": "kuzey",
-      "durum": "dogrulanmadi",
-      "not": ""
+      "durum": "haritadan_cikarildi",
+      "not": "SLAM haritasindan (depo_haritasi.pgm) goruntu isleme ile cikarildi"
     },
     "C3": {
-      "x": null,
-      "y": null,
-      "yaw_rad": null,
+      "x": 3.8372205246172877,
+      "y": 2.659511835694844,
+      "yaw_rad": -1.4974670329754074,
       "yon": "kuzey",
-      "durum": "dogrulanmadi",
-      "not": ""
+      "durum": "dogrulandi",
+      "not": "elle surulup tf'den yakalandi, 2026-08-20"
     }
   }
 }
