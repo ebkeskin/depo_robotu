@@ -1,7 +1,8 @@
 # PROJE DOSYASI — Yapay Zeka Destekli Akıllı Depo Robotu Simülasyonu
 
-**Son güncelleme:** 20 Ağustos 2026
-**Durum:** Sprint 3 — Nav2 navigasyonu, adres doğrulama devam ediyor
+**Son güncelleme:** 23 Ağustos 2026
+**Durum:** Sprint 4 (LLM komut çözümleme) tamamlandı ve gerçek API ile
+doğrulandı; Sprint 3 — Nav2 navigasyonu, adres doğrulama hâlâ devam ediyor
 (6/9 raf test edildi, A3 açık sorun) (§7, §12)
 
 > Bu dosya projenin tam devir belgesidir. Yeni bir sohbete bu dosyayı vererek
@@ -167,8 +168,13 @@ staj
 │       │   ├── kutu_uret.py                ← kutu üretme betiği
 │       │   ├── kutular.sdf                 ← üretilen SDF (depo.sdf'e yapıştırılır)
 │       │   └── envanter.json               ← GROUND TRUTH
-│       └── depo_robotu/                    ← Python node'ları
-│           └── kamera_kontrol.py
+│       ├── depo_robotu/                    ← Python node'ları
+│       │   └── kamera_kontrol.py
+│       └── llm_servis/                     ← BAĞIMSIZ FastAPI servisi (Sprint 4)
+│           ├── main.py                     ← ROS 2 colcon zincirine DAHİL DEĞİL
+│           ├── komut_cozumleyici.py        ← kendi pip install'ı var
+│           ├── llm_saglayici.py            ← .env (git'e girmez)
+│           └── sorgu_semasi.py
 │
 ├── build/  install/  log/                  ← colcon çıktıları
 │
@@ -758,15 +764,16 @@ daha büyük görünsün.
 | 4 | Mesafe: oracle modu | ☐ hâlâ yapılmadı — bilinçli erteleme, bkz. §12 |
 | 5 | Mesafe: algı modu (line fitting) | ☐ hâlâ yapılmadı — bilinçli erteleme, bkz. §12 |
 
-### 2D — Nesne tespiti 🔄 DEVAM EDİYOR
+### 2D — Nesne tespiti 🔄 DEVAM EDİYOR (raf kapsamlama düzeltildi, 23 Ağustos 2026)
 
 | # | İş | Not |
 |---|---|---|
 | 1 | HSV renk tespiti | **Kırmızı İKİ aralık ister** (HSV çemberinde 0'ın iki yanında) |
 | 2 | Boyut sınıflandırma | piksel alanı + mesafe → büyük/orta/küçük |
 | 3 | Kat ataması | 2C-3 ile birleştir |
-| 4 | `/tespitler` topic'i | renk, boyut, kat, konum |
-| 5 | YOLOv8n (opsiyonel) | 4 GB VRAM → nano/small, medium/large **kullanma** |
+| 4 | `/tespitler` topic'i | renk, boyut, kat, konum + yanal_konum (23 Ağustos) |
+| 5 | Raf kapsamlama | ✅ kapsam_disi alanı ile ayrıldı — bkz. §12 ACIK MADDE 2 güncellemesi. Kat1'de kalan derinlik-belirsizliği → SORUN 17 |
+| 6 | YOLOv8n (opsiyonel) | 4 GB VRAM → nano/small, medium/large **kullanma** |
 
 ### 2E — Tarama davranışı (Look-and-Move) ☐
 
@@ -782,6 +789,74 @@ Hareket halinde tespit yapılmaz — motion blur tespiti bozar.
 
 **Sprint 2 çıktısı:** Robot bir rafın önünde durup üç katı tarayabiliyor,
 gördüğü nesnelerin rengini, boyutunu ve **hangi katta olduğunu** raporluyor.
+
+### 2E — 9 raf uçtan uca perception testi (23 Ağustos 2026)
+
+**Metodoloji — Nav2 KULLANILMADI:** Robot her raf için `gz service
+/world/default/set_pose` ile doğrudan WORLD-frame duruş noktasına
+teleport edildi (x=raf_x, y=raf_y∓2.0, `KORIDOR_PAYI`+`RAF_YARI_DERINLIK`
+geometrisiyle), ardından `tarama_kontrol.py` ile gerçek Look-and-Move
+akışı (tilt → kilit → yerleşme → tespit topla, 3 kat) çalıştırıldı ve
+sonuç `envanter.json` ile karşılaştırıldı. Bu, Sprint 3'ün Nav2
+path-planning/AMCL testinden (bkz. yukarıdaki 9 raf tablosu, hâlâ
+kısmen tamamlanmamış) BAĞIMSIZDIR — burada test edilen yalnızca algı
+katmanı (kutu_tespit + tarama_kontrol), navigasyon değil.
+
+**1. geçiş — ideal yaw (tam ±π/2), 9 raf:**
+
+| Raf | Envanter | Eşleşen | Doğruluk | Kapsam dışı | Fazla |
+|---|---|---|---|---|---|
+| A1 | 11 | 11 | %100 | 4 | 2 |
+| A2 | 10 | 10 | %100 | 6 | 3 |
+| A3 | 12 | 11 | %91.7 | 3 | 2 |
+| B1 | 13 | 13 | %100 | 7 | 4 |
+| B2 | 8 | 8 | %100 | 9 | 4 |
+| B3 | 10 | 9 | %90.0 | 6 | 3 |
+| C1 | 10 | 10 | %100 | 5 | 3 |
+| C2 | 13 | 13 | %100 | 6 | 2 |
+| C3 | 9 | 8 | %88.9 | 4 | 3 |
+
+kat2/kat3 neredeyse her rafta envanterle tam eşleşiyor (Öncelik 1
+düzeltmesinin — bkz. NOTLAR.md SORUN 17 — genel doğrulaması); kalan
+fazlalık sistematik olarak kat1'de yoğunlaşıyor (ACIK MADDE 2 ile
+tutarlı). A3 ve C3'te kat3'te 1'er kutu kaçtı — bkz. NOTLAR.md
+(spekülatif, düşük öncelikli not).
+
+**2. geçiş — ÖLÇÜLEN hedef yaw sapması, A1/B1/C1/C3 + kontrol A2:**
+
+İlk geçiş tüm rafları tam ±π/2 yaw ile test etmişti — bu, Sprint 3'te
+ölçülen gerçek sapmaları (0.02-0.07 rad, `tarama_pozisyonlari.json`)
+YOK SAYIYORDU. Aynı 4 raf (en yüksek sapmalılar: B1=-0.042,
+C3=+0.073, C1=-0.022, A1=-0.018 rad) + sapması ~0 olan A2 (kontrol)
+`tarama_pozisyonlari.json`'daki ÖLÇÜLEN yaw'larla tekrar teleport
+edilip test edildi:
+
+| Raf | Ölçülen sapma | Eşleşen (ideal→ölçülen) | Doğruluk (ideal→ölçülen) |
+|---|---|---|---|
+| A1 | -0.018 rad | 11/11 → 11/11 | %100 → %100 |
+| A2 (kontrol) | ~0 | 10/10 → 10/10 | %100 → %100 |
+| B1 | -0.042 rad | 13/13 → 13/13 | %100 → %100 |
+| C1 | -0.022 rad | 10/10 → 10/10 | %100 → %100 |
+| C3 | +0.073 rad | 8/9 → 8/9 | %88.9 → %88.9 (aynı kat3 kaybı) |
+
+**Sonuç:** Ölçülen hedef sapması (0.02-0.07 rad aralığı) eşleşme oranını
+ÖLÇÜLEBİLİR şekilde etkilemiyor — 5 rafın hepsinde doğruluk birebir
+aynı kaldı (C3'ün kat3 kaybı sapmadan bağımsız, iki geçişte de aynı).
+`fazla_tespit`/`kapsam_disi` sayılarında görülen ±1-3 dalgalanma,
+sapması sıfır olan A2 kontrolünde de aynı büyüklükte gözlendi (13→13
+toplam, sadece kat1/kat2 dağılımı kaydı) — yani bu normal
+koşudan-koşuya gürültü (watershed/kontur varyansı), yaw'dan
+kaynaklanmıyor.
+
+**⚠️ Kapsam dışı bırakılan, hâlâ AÇIK soru:** Bu test yalnızca "ölçülen
+HEDEF sapması"nı (0.02-0.07 rad, yukarıdaki tablo) izole etti. Daha
+önce canlı Nav2 testlerinde GÖZLEMLENEN (ama repoda kaydı olmayan,
+Gazebo GUI'den gözle izlenmiş) gerçek durma pozu sapmaları daha büyük
+olabilir (`yaw_goal_tolerance` serbestliğinden - Nav2'nin hedefi "yeterince
+yakın" kabul edip durması, hedef pozdaki ölçüm hatasından AYRI bir
+kaynak) — bu, test edilmedi ve muhtemelen burada test edilenden daha
+büyük bir etki yaratabilir. Nav2 ile gerçek uçtan uca test (Sprint 3'ün
+kendi açık maddesi) yapılana kadar bu soru açık kalıyor.
 
 ## Sprint 3 — Navigasyon ve semantik harita 🔄 DEVAM EDİYOR
 
@@ -886,16 +961,61 @@ gönderiliyor.
 | A3 | ❌ lokalizasyon düzeltmesinden SONRA BILE tekrar tekrar başarısız (`Failed to make progress`, `ABORTED`) — kök sebep net değil, **açık sorun** (bkz. §12) |
 | B1, B2, B3, C1, C2 | ☐ henüz test edilmedi |
 
-## Sprint 4 — LLM komut çözümleme ☐
+## Sprint 4 — LLM komut çözümleme ✅ TAMAMLANDI (23 Ağustos 2026)
 
-| # | İş |
+| # | İş | Durum |
+|---|---|---|
+| 1 | FastAPI servisi | ✅ `llm_servis/` — ROS 2 `colcon build` zincirine dahil değil, kendi `pip install`'ı var |
+| 2 | LLM sağlayıcı seçimi (Groq / OpenRouter / Google AI Studio) | ✅ **Google AI Studio (Gemini)** seçildi |
+| 3 | Sağlayıcı çağrısını **tek fonksiyonda topla** | ✅ `llm_saglayici.py` → `llm_cagir` |
+| 4 | Doğal dil → yapılandırılmış JSON sorgu | ✅ `komut_cozumleyici.py`, pydantic ile doğrulama |
+| 5 | Belirsizlik yönetimi: "kırmızı kutu" → 13 eşleşme, ne yapmalı? | ✅ gerçek `envanter.json`'a karşı sayılıyor, `belirsiz:true` + liste dönüyor |
+| 6 | Hatalı komut yönetimi | ✅ `main.py`'de var |
+
+**Mimari:** `main.py`, `komut_cozumleyici.py`, `llm_saglayici.py`,
+`sorgu_semasi.py`. Servis ROS 2/Gazebo'dan tamamen bağımsız — `envanter.json`
+sabit dosya, LLM çağrısı internet üzerinden gidiyor, test için sadece
+`uvicorn main:app` yeterli.
+
+**Model notu:** `gemini-3.6-flash` kullanılıyor (`gemini-2.5-flash` 23
+Ağustos 2026 itibarıyla yeni hesaplara kapatıldı, 404 hatası). API key
+formatı da değişti: Google artık `AIzaSy...` yerine `AQ.Ab...` ("Auth key")
+formatında key veriyor (Haziran 2026 itibarıyla); eski format Eylül 2026'da
+tamamen kapanacak. `google-genai` SDK'sı yeni formatı native destekliyor.
+
+**Bulunan ve düzeltilen hata:** `envanter.json`'un gerçek yapısı düz bir
+kutu listesi değil — üst seviyede `raf_konumlari`, `kat_yuzeyleri`,
+`kutular` anahtarları var (`kutu_uret.py` çıktısı). `_envanter_yukle`
+`veri.get("kutular", [])` ile düzeltildi (düz liste durumu da destekleniyor).
+
+**Uçtan uca doğrulama (gerçek API, curl):**
+
+| Komut | Sonuç |
 |---|---|
-| 1 | FastAPI servisi |
-| 2 | LLM sağlayıcı seçimi (Groq / OpenRouter / Google AI Studio) |
-| 3 | Sağlayıcı çağrısını **tek fonksiyonda topla** |
-| 4 | Doğal dil → yapılandırılmış JSON sorgu |
-| 5 | Belirsizlik yönetimi: "kırmızı kutu" → 13 eşleşme, ne yapmalı? |
-| 6 | Hatalı komut yönetimi |
+| "A1'in 3. katına git" | `tip:adres, raf:A1, kat:3` ✅ |
+| "kırmızı kutuyu bul" | 11 eşleşme, `belirsiz:true`, tam liste döndü ✅ |
+| "kaç yeşil kutu var" | `tip:sayim, eslesme_sayisi:11, eslesmeler:null` ✅ |
+
+Sayım sorgusunda kutu listesi döndürülmüyor (bilinçli tasarım) — sadece
+sayı. `test_komut_cozumleyici.py`: 9 mock senaryo (adres, tek/çoklu/sıfır
+eşleşme, sayım, geçersiz raf, eksik alan, bozuk JSON, ilgisiz komut), API
+anahtarı olmadan LLM çağrısı mock'lanarak test ediliyor, hepsi geçiyor.
+
+**`.env` güvenliği:** `.env` git'e eklenmedi (`.gitignore`'a eklendi), key
+`GOOGLE_API_KEY=` satırında.
+
+**Bilinçli sınırlar (henüz yapılmadı):**
+- `tip:adres` sorgusu koordinat üretmiyor, sadece `raf`+`kat` döner —
+  koordinata çevirme (`adres_veritabani.json` / `tarama_pozisyonlari.json`)
+  Sprint 3'ün navigasyon katmanının işi.
+- `belirsiz:true` durumunda kullanıcıya soracak arayüz/akış henüz yok.
+- **✅ KARAR VERİLDİ (23 Ağustos 2026):** ROS 2 tarafında yeni bir node
+  (öneri: `navigasyon_koprusu.py`) FastAPI servisine HTTP isteği atacak;
+  `llm_servis` ROS 2'den tamamen bağımsız kalmaya devam edecek (Sprint
+  4'ün "bu servis simülasyon gerektirmiyor" tasarım ilkesiyle tutarlı).
+  Gerekçe: FastAPI içine `rclpy` gömmek servisi colcon ortamına
+  bağımlı kılar ve bağımsız test edilebilirliği (`uvicorn main:app`)
+  kaybettirirdi. Henüz uygulanmadı — Sprint 5'in ilk işi.
 
 **Sorgu tipleri:**
 
@@ -1339,12 +1459,16 @@ kütüphaneleri var, Gazebo'nun grafiğini bozabilir.
 
 # 12. AÇIK KONULAR
 
-- [ ] Yeni GROQ API anahtarı — `.env`'de, `.gitignore`'a ekle, `.bashrc`'ye **asla**
+- [x] LLM sağlayıcı API anahtarı — Google AI Studio (Gemini) seçildi,
+      `.env`'de tutuluyor, `.gitignore`'a eklendi, `.bashrc`'ye **asla**
+      yazılmadı (bkz. §7 Sprint 4). Ücretsiz katman RPM/RPD limitleri sık
+      değişiyor, sabit tablo yok — canlı limitler için
+      `aistudio.google.com/rate-limit`; `llm_saglayici.py` 429'u
+      `LLMKotaHatasi` ile ayrı yakalıyor.
 - [ ] Takım kaptanına `.bashrc` İDA bloğu düzenlemesi bildirilecek
       (`GZ_SIM_RESOURCE_PATH` iki satırı birleştirildi — eskiden ikincisi
       birincinin üzerine yazıyordu, bu bir bug'dı)
 - [ ] Laptop bakımı (toz + termal macun)
-- [ ] LLM sağlayıcı araştırması — rate limit ve ücretsiz kota kriterleri
 - [ ] Sprint 1 demo videosu (`Ctrl+Alt+Shift+R`)
 - [ ] `NOTLAR.md` → Word belgesine derleme
 - [ ] Sabit kamera (tilt=0) sürümünü baseline için sakla
@@ -1410,6 +1534,20 @@ kütüphaneleri var, Gazebo'nun grafiğini bozabilir.
       mumkunse envanterdeki bilinen konumla capraz kontrolle tekrar
       test edilmeli.
 
+      GUNCELLEME (23 Agustos 2026, Sprint 2D/2E tamamlama calismasi):
+      ✅ DOGRULANDI. yanal_konum alani /tespitler JSON'una eklendi (daha
+      once hesaplanip atiliyordu). 35 karelik canli B2 testinde (kamera
+      kat2 tiltinde sabit tutulup /tespitler dinlendi) gercek mavi kutu
+      HER karede tutarli sekilde goruldu: yanal_konum ≈ -1.21/-1.22 (raf
+      genisligi ve isaret donusumuyle envanterin x=1.2'siyle tutarli),
+      yukseklik uyumu fark_m ≈ 0.08-0.11 (onceki ≈0.30 endisesinin cok
+      altinda), direk reddetme bandindan (±1.35, tolerans ±0.08) ~0.06m
+      guvenli mesafede. GERCEK KUTU FILTRE TARAFINDAN ELENMIYOR. Kozmetik
+      yan not: bu tespit boyut_kestir tarafindan "buyuk" olarak
+      siniflandiriliyor (gercegi "kucuk") - muhtemelen kontur direkle
+      kismen optik birlesiyor; renk-bazli eslesmeyi etkilemiyor,
+      dokunulmadi.
+
       ACIK MADDE 2 - x=mesafe DUZLEM VARSAYIMI ACIK ARKALI RAFLARDA
       GECERSIZ OLABILIR: Raflarin arkasi kapali degil (sadece 2 direk +
       3 ince tabla, arka panel yok). Kamera bosluklardan baktiginda ayni
@@ -1431,6 +1569,24 @@ kütüphaneleri var, Gazebo'nun grafiğini bozabilir.
       dokunulmadi, sadece orkestrasyon katmani tarama_kontrol.py bu
       farki `fazla_tespit` alaniyla raporda gosteriyor). Sprint 6
       metrik tasarimini etkiler, bkz. §7 Metrikler notu.
+
+      GUNCELLEME (23 Agustos 2026, Sprint 2D/2E tamamlama calismasi):
+      🔄 KISMEN COZULDU. kapsam_disi ayrimi eklendi (RAF_UZUNLUK=2.8,
+      yanal_konum'un ±1.4 ici/disi kontrolu) - `fazla_tespit`'ten
+      BILEREK AYRI tutuldu (farkli hata modlari: kapsam_disi = raf
+      genisligi disinda, geometrik olarak bu rafa ait OLAMAZ; fazla_tespit
+      = raf ici ama renk envanterle eslesmedi). Ayrica test sirasinda
+      ayri bir hata bulunup duzeltildi (bkz. NOTLAR.md SORUN 17): tespitler
+      talep edilen tilt katina degil, kendi hesaplanan kat alanina gore
+      kovalanacak sekilde degistirildi. B2 canli testinde: kat2/kat3 artik
+      TAM temiz (0 fazla), kat1'de 4 fazla tespit kaldi - konumlari
+      envanterin gercek kat1 kutularina uymuyor, bu bir DERINLIK
+      belirsizligi (yukaridaki x=mesafe varsayimi sorunu, yanal_konum
+      filtresi yakalayamaz cunku ayni x-sutunundaki sizinti yanal olarak da
+      raf genisligi icinde kaliyor) - SORUN 17'ye kaydedildi, dokunulmadi.
+      Sinir-yakini yanlis-negatif riski kontrol edildi: B2'nin en uzak
+      gercek kutusu ±1.2, esige (±1.4) 0.2-0.28m pay var, iki test
+      kosusunda da hicbir gercek kutu yanlislikla elenmedi.
 
 - [ ] RPP'nin `min_approach_linear_velocity` (0.05) ile progress_checker'in
       `movement_time_allowance` (15.0) arasindaki marj hala dar (bkz.

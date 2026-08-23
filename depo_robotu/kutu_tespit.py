@@ -308,6 +308,7 @@ class KutuTespit(Node):
                 tespitler.append({
                     'renk': renk, 'boyut': boyut, 'kat': kat,
                     'piksel': [merkez_u, merkez_v], 'fark_m': round(fark, 3),
+                    'yanal_konum': round(yanal_konum, 3),
                 })
 
                 bgr = CIZIM_RENKLERI[renk]

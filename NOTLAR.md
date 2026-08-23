@@ -747,6 +747,58 @@ Derlemeden sonra **yeni terminal** açılmalı (ortam tazelensin).
 
 ---
 
+## SORUN 17 — Tarama pencereleri arası kat kovalama hatası (SORUN 12'nin devamı, Sprint 3)
+
+**Belirti**
+SORUN 12'nin `yanal_konum` (raf genişliği) filtresi `kutu_tespit.py`'ye eklenip
+`tarama_kontrol.py`'de uygulandıktan (bkz. `yanal_konum` alanı artık
+`/tespitler`'de yayınlanıyor, ±`RAF_UZUNLUK/2` dışındaki tespitler `kapsam_disi`
+olarak ayrı sayılıyor) sonra bile, B2 canlı testinde kat başına tespit sayısı
+hâlâ 10-13 civarında kalmaya devam etti — beklenen ~4'e (envanterdeki gerçek
+sayı) düşmedi.
+
+**Sebep**
+`tarama_kontrol.py`, bir tilt penceresinde toplanan tespitleri o an TALEP
+EDİLEN kata göre kovalıyordu (`self.tum_tespitler[hedef_kat] = tekil`), ama
+`kutu_tespit.py` her tespitin `kat` alanını KENDİ ışın-düzlem kesişimine göre
+bağımsız hesaplıyor — geniş FOV (bkz. SORUN 12/KARAR 1) yüzünden tek bir tilt
+penceresinde aynı anda birden fazla kat görüntüde olabiliyor. Sonuç: aynı
+gerçek kutu, üç pencerenin de (kat1/kat2/kat3 tilt'leri) görüş alanına girip
+her seferinde ayrı ayrı kaydediliyordu — ham veriyle doğrulandı (B2'de aynı
+8 gerçek kutu, `own_kat` karışık olarak her üç pencerede de tekrar tekrar
+görüldü, aralarında sadece piksel v konumu tilt'e göre değişiyordu).
+
+**Çözüm**
+`tarama_kontrol.py`: pencere sonuçları artık talep edilen kata göre değil,
+ortak bir havuza (`_havuz_tespitler`/`_havuz_kapsam_disi`) biriktiriliyor. Üç
+pencere bitince (`_havuzu_kata_gore_kovala`) havuz, tespitlerin KENDİ `kat`
+alanına göre nihai kovalara ayrılıyor ve pencereler-arası tekrarlar
+`_pencereler_arasi_tekillestir` ile birleştiriliyor (piksel kullanılamıyor -
+tilt pencereler arası değiştiği için aynı kutu farklı v'de görünüyor; bunun
+yerine renk + kat + `yanal_konum` yakınlığı, eşik 0.12 m, kullanıldı - iki
+testte gözlenen pencereler-arası kayma en fazla ~0.06 m'ydi).
+
+**Doğrulama**
+B2 testinde (SORUN 12 filtresiyle birlikte): kat2 nihai 4/4, kat3 nihai 2/2 -
+envanterle TAM eşleşti (0 fazla). kat1 nihai 6 (gerçek 2 + 4 fazla) - kalan
+fazlalar (`mavi kucuk`, `mavi buyuk` x2, `sari kucuk`) envanterdeki gerçek
+B2 kat1 kutularının konumuyla eşleşmiyor; bu ACIK MADDE 2 (aynı x-sütunundaki
+A2/C2'nin raf arkası boşluktan derinlik belirsizliğiyle sızması) ile tutarlı
+- `yanal_konum` filtresi bunu YAKALAYAMAZ çünkü aynı sütunda hizalı sızıntı
+yanal olarak da raf genişliği içinde kalıyor. Kod değişikliği yapılmadı,
+kapsam dışı bırakıldı (derinlik ayrımı gerektirir, `kutu_tespit.py`'nin tek
+skaler LIDAR mesafesi mimarisinin ötesinde bir değişiklik ister).
+
+**Ek not (23 Ağustos 2026, 9 raf uçtan uca perception testi) — düşük öncelik:**
+A3 ve C3'te kat3'te 1'er gerçek kutu kaçtı (A3: 3 gerekli/2 tespit, C3: 4
+gerekli/3 tespit) — hem ideal hem ölçülen-yaw geçişinde AYNI kayıp tekrar
+etti, yani yaw sapmasından bağımsız (bkz. PROJE_DOSYASI.md §7 2E). B3'te de
+kat1'de 1 renk eşleşmesi kaçtı. Spekülatif neden: muhtemelen tek-kare
+kontur/watershed segmentasyon gürültüsü (bkz. SORUN 13) — derinlemesine
+araştırılmadı, düşük öncelikli.
+
+---
+
 ## Sıradaki iş: Hareketli (tilt) kamera
 
 **Neden:** Sabit kamerayla dar koridorda üç kat birden görülemiyor (bkz. KARAR 1).

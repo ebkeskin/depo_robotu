@@ -14,6 +14,17 @@ oturmasi icin kisa bir yerlesme suresi -> tespitler'i bir pencere
 boyunca topla ve pikselde yakin olanlari tekillestir. Uc kat bitince
 sonuclari envanter.json'daki ilgili raf ile karsilastirip dogruluk
 raporu yayinlar/loglar.
+
+NOT (kat kovalama): Tespitler, o an TALEP EDILEN kata gore degil, her
+tespitin kutu_tespit.py'nin bagimsiz hesapladigi KENDI 'kat' alanina
+gore kovalanir. Sebep: genis FOV (bkz. NOTLAR.md SORUN 12) yuzunden
+tek bir tilt penceresinde birden fazla kat ayni anda goruntude
+olabiliyor - kutu_tespit her tespiti kendi isin-duzlem kesisimine gore
+dogru katina atiyor, tilt'in hangi kata "hedeflendigi" ile ayni sey
+degil. Bu yuzden ayni gercek kutu, uc pencerenin de gorus alanina
+girip 3 kez kaydedilebiliyor (canli B2 testinde dogrulandi - 8 gercek
+kutu her pencerede tekrar tekrar goruldu). Pencereler arasi tekrarlari
+_pencereler_arasi_tekillestir eler.
 """
 
 import json
@@ -30,7 +41,24 @@ class TaramaKontrol(Node):
     KILIT_ESIGI = 5          # bakilan_kat'in ust uste kac kez hedefle eslesmesi gerekiyor
     YERLESME_SURESI = 1.5    # s - kilitten sonra goruntunun otursun diye beklenen sure
     TOPLAMA_SURESI = 2.5     # s - tespitler'i dinleme penceresi
-    PIKSEL_ESIGI = 40        # px - ayni kutunun tekrarli tespitlerini birlestirmek icin
+    PIKSEL_ESIGI = 40        # px - AYNI pencere icinde ayni kutunun tekrarli
+                              # tespitlerini birlestirmek icin (bkz. _tekillestir)
+    YANAL_ESIGI = 0.12       # m - FARKLI kat pencereleri arasinda ayni kutuyu
+                              # birlestirmek icin (bkz. _pencereler_arasi_tekillestir).
+                              # Piksel burada kullanilamaz - tilt her pencerede
+                              # degistigi icin ayni kutu farkli v'de goruniyor.
+                              # 0.12, iki testte gozlenen pencere-arasi yanal_konum
+                              # kaymasindan (en fazla ~0.06 m, kenar kutularda) guvenli
+                              # pay birakacak sekilde secildi.
+
+    # kutu_tespit.py ile ayni (raf genisligi) - NOTLAR.md SORUN 12: genis FOV
+    # komsu raflardan (orn. B2 taranirken A2/C2) tespit sizdirabiliyor. Bu
+    # tespitler yanal_konum'u (kutu_tespit.py'nin zaten hesaplayip artik
+    # yayinladigi deger) rafin kendi genisligi disina dusuruyor - geometrik
+    # olarak bu rafa ait OLAMAZLAR, renk eslesse bile paydan cikariliyor
+    # (bkz. PROJE_DOSYASI.md SS7 Sprint 6 "ONEMLI (precision/recall payda
+    # tasarimi)" notu).
+    RAF_UZUNLUK = 2.8
 
     def __init__(self):
         super().__init__('tarama_kontrol')
@@ -49,8 +77,13 @@ class TaramaKontrol(Node):
         self.kat_indeksi = 0
         self.durum = 'KAT_ISTE'
         self.kilit_sayaci = 0
-        self.tum_tespitler = {}  # kat -> [tespit, ...] (tekillestirilmis)
+        self.tum_tespitler = {}  # kat -> [tespit, ...] (nihai, pencereler-arasi tekillestirilmis)
+        self.tum_kapsam_disi = {}  # kat -> [tespit, ...] (nihai, raf disi)
+        self._havuz_tespitler = []  # tum pencerelerden biriken, HENUZ kata gore kovalanmamis
+        self._havuz_kapsam_disi = []
         self._kat_tespitleri = []
+        self._kat_kapsam_disi = []
+        self._yanal_konum_uyarisi_yapildi = False
         self._durum_baslangic = self._simdi()
 
         self.zamanlayici = self.create_timer(0.2, self._adim)
@@ -93,7 +126,21 @@ class TaramaKontrol(Node):
             gelen = json.loads(mesaj.data)
         except json.JSONDecodeError:
             return
-        self._kat_tespitleri.extend(gelen)
+
+        yari_genislik = self.RAF_UZUNLUK / 2
+        for t in gelen:
+            yanal_konum = t.get('yanal_konum')
+            if yanal_konum is None:
+                if not self._yanal_konum_uyarisi_yapildi:
+                    self.get_logger().warn(
+                        "Tespitte 'yanal_konum' alani yok (eski kutu_tespit.py?), "
+                        'kapsam filtrelemesi atlaniyor.')
+                    self._yanal_konum_uyarisi_yapildi = True
+                self._kat_tespitleri.append(t)
+            elif abs(yanal_konum) <= yari_genislik:
+                self._kat_tespitleri.append(t)
+            else:
+                self._kat_kapsam_disi.append(t)
 
     def _tekillestir(self, tespitler):
         tekil = []
@@ -104,6 +151,26 @@ class TaramaKontrol(Node):
                 mu, mv = mevcut['piksel']
                 if abs(mu - u) < self.PIKSEL_ESIGI and abs(mv - v) < self.PIKSEL_ESIGI \
                         and mevcut['renk'] == t['renk']:
+                    eslesme = mevcut
+                    break
+            if eslesme is None:
+                tekil.append(t)
+        return tekil
+
+    def _pencereler_arasi_tekillestir(self, tespitler):
+        """Farkli kat pencerelerinde tekrar goruntulenen ayni kutuyu birlestirir.
+
+        Piksel burada kullanilamaz (tilt pencereler arasi degistigi icin ayni
+        kutu farkli v'de goruniyor) - bunun yerine renk + kendi 'kat' alani +
+        yanal_konum yakinligi (YANAL_ESIGI) kullanilir.
+        """
+        tekil = []
+        for t in tespitler:
+            eslesme = None
+            for mevcut in tekil:
+                if (mevcut['renk'] == t['renk'] and mevcut['kat'] == t['kat']
+                        and abs(mevcut.get('yanal_konum', 0.0) - t.get('yanal_konum', 0.0))
+                        < self.YANAL_ESIGI):
                     eslesme = mevcut
                     break
             if eslesme is None:
@@ -131,14 +198,22 @@ class TaramaKontrol(Node):
         elif self.durum == 'YERLES':
             if self._gecen_sure() > self.YERLESME_SURESI:
                 self._kat_tespitleri = []
+                self._kat_kapsam_disi = []
                 self._durum_degistir('TESPIT_TOPLA')
 
         elif self.durum == 'TESPIT_TOPLA':
             if self._gecen_sure() > self.TOPLAMA_SURESI:
-                kat = self.KATLAR[self.kat_indeksi]
+                hedef = self.KATLAR[self.kat_indeksi]
                 tekil = self._tekillestir(self._kat_tespitleri)
-                self.tum_tespitler[kat] = tekil
-                self.get_logger().info(f'Kat {kat}: {len(tekil)} kutu tespit edildi.')
+                tekil_kapsam_disi = self._tekillestir(self._kat_kapsam_disi)
+                # NOT: bu pencerenin (hedef tilt) tespitleri kendi 'kat'
+                # alanlarina gore DAGILMIS olabilir (bkz. sinif docstring'i) -
+                # burada henuz nihai kovalama yapilmiyor, havuza ekleniyor.
+                self._havuz_tespitler.extend(tekil)
+                self._havuz_kapsam_disi.extend(tekil_kapsam_disi)
+                self.get_logger().info(
+                    f'Kat {hedef} penceresi: {len(tekil)} tespit toplandi '
+                    f'({len(tekil_kapsam_disi)} kapsam disi elendi).')
 
                 self.kat_indeksi += 1
                 if self.kat_indeksi < len(self.KATLAR):
@@ -147,14 +222,40 @@ class TaramaKontrol(Node):
                     self._durum_degistir('RAPOR')
 
         elif self.durum == 'RAPOR':
+            self._havuzu_kata_gore_kovala()
             self._rapor_olustur()
             self._durum_degistir('BITTI')
 
         elif self.durum == 'BITTI':
             pass
 
+    def _havuzu_kata_gore_kovala(self):
+        """Uc pencereden biriken havuzu, tespitlerin KENDI 'kat' alanina gore
+        nihai kovalara ayirir ve pencereler-arasi tekrarlari birlestirir
+        (bkz. sinif docstring'i - ayni kutu birden fazla pencerede goruntude
+        olabiliyor).
+        """
+        for kat in self.KATLAR:
+            bu_kat = [t for t in self._havuz_tespitler if t['kat'] == kat]
+            bu_kat_kapsam_disi = [t for t in self._havuz_kapsam_disi if t['kat'] == kat]
+            self.tum_tespitler[kat] = self._pencereler_arasi_tekillestir(bu_kat)
+            self.tum_kapsam_disi[kat] = self._pencereler_arasi_tekillestir(bu_kat_kapsam_disi)
+            self.get_logger().info(
+                f'Kat {kat} (nihai): {len(self.tum_tespitler[kat])} kutu tespit edildi '
+                f'({len(self.tum_kapsam_disi[kat])} kapsam disi).')
+
     def _rapor_olustur(self):
-        rapor = {'raf': self.raf_adi, 'tespitler': self.tum_tespitler}
+        kapsam_disi_toplam = sum(len(v) for v in self.tum_kapsam_disi.values())
+        rapor = {
+            'raf': self.raf_adi,
+            'tespitler': self.tum_tespitler,
+            'kapsam_disi': kapsam_disi_toplam,
+            'kapsam_disi_detay': self.tum_kapsam_disi,
+        }
+        if kapsam_disi_toplam > 0:
+            self.get_logger().info(
+                f'{kapsam_disi_toplam} tespit kapsam disi (raf genisligi disi '
+                f'yanal_konum) olarak elendi, paydaya girmedi.')
 
         if self.envanter is not None:
             gt_kutular = [k for k in self.envanter['kutular'] if k['raf'] == self.raf_adi]
