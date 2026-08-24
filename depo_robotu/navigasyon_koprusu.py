@@ -74,8 +74,28 @@ action-client gibi gercek ROS nesnelerinden bagimsiz SAF bir fonksiyon --
 gercek iptali yapan _iptali_uygula'dan ayrildi (bkz. Madde 3'teki
 _en_yakin_eslesmeyi_sec/_en_yakina_git ayrimiyla ayni desen), ROS'suz
 izole test edilebilsin diye.
+
+PASIF ENVANTER MVP (Madde 4, PROJE_DOSYASI.md 1.3 "ozgun fikir (a)"nin
+ilk adimi): her tarama_raporu, GERCEKTEN gorulen (envanter.json ground
+truth'undan DEGIL, kutu_tespit.py'nin canli tespitlerinden gelen, zaten
+raf-kapsamlamasi ve pencereler-arasi tekillestirme uygulanmis) tespitleri
+robot_envanteri.json'a raf basina kaydeder -- bir raf tekrar taranirsa
+o rafin girdisi YENISIYLE DEGISTIRILIR (ekleme/biriktirme degil), boylece
+tekrarlayan taramalarda sinirsiz kopya birikmesi veya YANAL_ESIGI gibi
+yeni bir bulaniklik-esigi riski yok. "Ne ogrendin" sorusu (regex, Madde
+5/6 ile ayni desen) bu dosyayi ozetleyip raporlar.
+
+MVP KAPSAM SINIRI (bilincli, kullanicinin onayiyla): bu SADECE acikca
+tara edilen raflardan ogrenir -- robot "git" ile bir yerden GECERKEN
+gordugu kutulari KAYDETMEZ (idea (a)'nin tam hali bunu da yapardi, ama
+bu, kutu_tespit.py'nin ham /tespitler'ine surekli abone olup TF ile
+dunya-cercevesi konum hesaplamayi gerektirir -- Madde 3'teki gibi yeni
+bir world/map donusumu riski tasiyan, ayri ve buyuk bir is). Ground truth
+aramasindan (tip:arama, envanter.json'a karsi) da KASITLI olarak AYRI:
+biri "biliniyor" der, digeri "gordum" der, karistirilmamali.
 """
 
+import datetime
 import json
 import math
 import re
@@ -139,6 +159,10 @@ class NavigasyonKoprusu(Node):
         self._tf_buffer = Buffer()
         self._tf_dinleyici = TransformListener(self._tf_buffer, self)
 
+        # Madde 4: pasif envanter MVP -- onceki oturumlardan kalan
+        # robot_envanteri.json varsa yuklenir, yoksa bos baslar.
+        self.robot_envanteri = self._robot_envanteri_yukle()
+
         self.komut_abone = self.create_subscription(
             String, '/komut', self._komut_geldi, 10)
 
@@ -165,6 +189,14 @@ class NavigasyonKoprusu(Node):
         # gitmeden aninda calismali, bekleyen bir belirsizligi de temizler.
         if self._iptal_ifadesi_mi(metin):
             self._iptali_uygula()
+            return
+
+        # Madde 4: "ne ogrendin" gibi bir soru -- llm_servis'e gitmeden,
+        # SADECE acikca tarama_kontrol calistirilmis raflardan biriken
+        # robot_envanteri.json'u ozetleyip raporlar. Ground truth
+        # aramasindan (tip:arama) KASITLI ayri (bkz. modul docstring'i).
+        if self._ogrendin_ifadesi_mi(metin):
+            self._ogrendiklerini_raporla()
             return
 
         # Madde 5: bekleyen bir belirsizlik varsa ve bu komut bir sira
@@ -389,6 +421,72 @@ class NavigasyonKoprusu(Node):
             self.get_logger().info(
                 'Iptal komutu alindi ama devam eden bir navigasyon/tarama yok.')
 
+    @staticmethod
+    def _ogrendin_ifadesi_mi(metin: str) -> bool:
+        """Madde 4: saf, ROS'suz string kontrolu. "ne ogrendin",
+        "ogrendiklerini soyle", "envanterini goster" gibi ifadeleri tanir."""
+        m = metin.lower()
+        if 'öğren' in m or 'ogren' in m:
+            return True
+        return 'envanter' in m and ('göster' in m or 'goster' in m)
+
+    @staticmethod
+    def _ogrenilen_ozet_metni(envanter: dict) -> str:
+        """Madde 4: robot_envanteri.json icerigini (dict) insan-okunur bir
+        ozet metnine cevirir -- TAMAMEN saf, dosya/ROS erisimi yok, ROS'suz
+        izole test edilebilsin diye _ogrendiklerini_raporla'dan (dosya
+        okuma + loglama) ayrildi (bkz. Madde 3/6'daki ayni desen).
+        """
+        raflar = envanter.get('raflar', {})
+        if not raflar:
+            return 'Henuz hicbir raf taramadim, ogrendigim bir sey yok.'
+
+        raf_ozetleri = []
+        toplam_kutu = 0
+        for raf in sorted(raflar):
+            tespitler = raflar[raf].get('tespitler', {})
+            raf_toplam = sum(len(v) for v in tespitler.values())
+            toplam_kutu += raf_toplam
+            raf_ozetleri.append(f'{raf}: {raf_toplam} kutu')
+
+        return (
+            f'{len(raflar)} raf taradim ({", ".join(sorted(raflar))}), '
+            f'toplam {toplam_kutu} kutu gordum. {", ".join(raf_ozetleri)}.'
+        )
+
+    def _robot_envanteri_yolu(self) -> Path:
+        return Path(get_package_share_directory('depo_robotu')) / 'araclar' / 'robot_envanteri.json'
+
+    def _robot_envanteri_yukle(self) -> dict:
+        try:
+            with open(self._robot_envanteri_yolu(), 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except (OSError, json.JSONDecodeError):
+            return {'raflar': {}}
+
+    def _robot_envanterini_kaydet(self) -> None:
+        try:
+            with open(self._robot_envanteri_yolu(), 'w', encoding='utf-8') as f:
+                json.dump(self.robot_envanteri, f, ensure_ascii=False, indent=2)
+        except OSError as e:
+            self.get_logger().error(f'robot_envanteri.json yazilamadi: {e}')
+
+    def _robot_envanterini_guncelle(self, rapor: dict) -> None:
+        """Madde 4: bir /tarama_raporu geldiginde o rafin girdisini
+        YENISIYLE DEGISTIRIR (bkz. modul docstring'i, MVP tasarim karari)."""
+        raf = rapor.get('raf')
+        if raf is None:
+            return
+        self.robot_envanteri.setdefault('raflar', {})[raf] = {
+            'son_tarama_zamani': datetime.datetime.now().isoformat(timespec='seconds'),
+            'tespitler': rapor.get('tespitler', {}),
+        }
+        self._robot_envanterini_kaydet()
+
+    def _ogrendiklerini_raporla(self) -> None:
+        ozet = self._ogrenilen_ozet_metni(self.robot_envanteri)
+        self.get_logger().info(f'Ogrendiklerim: {ozet}')
+
     def _hedefe_git(self, pozisyon: dict) -> None:
         goal = PoseStamped()
         goal.header.frame_id = 'map'
@@ -466,6 +564,10 @@ class NavigasyonKoprusu(Node):
             f"'{rapor.get('raf')}' taramasi tamamlandi: "
             f"{rapor.get('eslesen')}/{rapor.get('envanter_toplam')} eslesme "
             f"(dogruluk %{rapor.get('dogruluk', 0) * 100:.1f}).")
+
+        # Madde 4: pasif envanter MVP -- bu taramanin GERCEKTEN gordugu
+        # (ground truth degil) kutular robot_envanteri.json'a kaydedilir.
+        self._robot_envanterini_guncelle(rapor)
 
         self._tarama_proc.terminate()
         self._tarama_proc = None
