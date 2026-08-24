@@ -7,24 +7,39 @@ bagimsiz kalmaya devam ediyor; koprunun yonu ROS 2 -> FastAPI. Bu node
 /komut topicinden dogal dil metnini alir, http://localhost:8000/komut
 adresine HTTP POST atar, donen sorguyu (sadece tip:adres) tarama_pozisyonlari.json
 ile (x, y, yaw) hedefine cevirip Nav2'ye NavigateToPose action'i olarak
-gonderir. Navigasyon basariyla tamamlandiginda sorgudaki kat bilgisi
-/hedef_kat topicine yayinlanir (kamera_kontrol.py bunu dinleyip kamerayi
-o katin acisina cevirir). tip:arama / tip:sayim sonuclari (navigasyon
-gerektirmiyor) sadece loglanir.
+gonderir. Navigasyon basariyla tamamlandiginda tarama_kontrol.py'nin
+sagladigi Look-and-Move akisi (3 kati sirayla tara, kutulari tespit et)
+bir SUBPROCESS olarak tetiklenir - tip:arama / tip:sayim sonuclari
+(navigasyon gerektirmiyor) sadece loglanir.
+
+tarama_kontrol.py NEDEN SUBPROCESS: kendisi 'raf' adini yalnizca kendi
+ROS parametresinden okuyan, constructor'da baslayip bitince kendini
+KAPATMAYAN bagimsiz bir node (bkz. dosyanin kendi docstring'i). Farkli
+bir rafi taramasi icin yeniden baslatilmasi gerekiyor - dinamik "simdi
+X'i tara" tetiklemesi yok. Bu yuzden onu her navigasyon basarisinda
+`ros2 run depo_robotu tarama_kontrol -p raf:=<raf>` ile YENIDEN
+baslatiyoruz, /tarama_raporu mesaji gelince sonlandiriyoruz.
+tarama_kontrol.py'nin kendisinde HICBIR degisiklik yapilmadi.
 
 llm_servis kendi pip ortaminda calisan ayri bir surec oldugu icin
 buradaki JSON ayrisimi pydantic semasini (sorgu_semasi.py) DEGIL, duz
 dict.get() kullanir - iki surec birbirinin Python bagimliliklarini
 paylasmaz.
 
-BILINCLI SINIR: /komut geldiginde HTTP istegi bu callback icinde
-BLOKLAYICI olarak yapiliyor (requests.post). LLM cevabi birkac saniye
-surebiliyor, bu sure boyunca dugum baska /komut mesaji islemez. Tekli
-interaktif kullanim (bir komut - bir sonuc) icin yeterli, coklu-istemci
-senaryosu icin executor/thread onerilir (henuz yapilmadi).
+BILINCLI SINIRLAR:
+- /komut geldiginde HTTP istegi bu callback icinde BLOKLAYICI olarak
+  yapiliyor (requests.post). LLM cevabi birkac saniye surebiliyor, bu
+  sure boyunca dugum baska /komut mesaji islemez. Tekli interaktif
+  kullanim (bir komut - bir sonuc) icin yeterli, coklu-istemci
+  senaryosu icin executor/thread onerilir (henuz yapilmadi).
+- tarama_kontrol subprocess'i icin bir zaman asimi/saglik kontrolu yok -
+  surec cokerse veya /tarama_raporu hic gelmezse dugum sonsuza dek
+  "tarama devam ediyor" sanip yeni istekleri reddeder (bkz.
+  _tarama_baslat). Manuel mudahale (dugumu yeniden baslatmak) gerekir.
 """
 
 import json
+import subprocess
 from pathlib import Path
 
 import requests
@@ -35,7 +50,7 @@ from geometry_msgs.msg import PoseStamped
 from nav2_msgs.action import NavigateToPose
 from rclpy.action import ActionClient
 from rclpy.node import Node
-from std_msgs.msg import Int32, String
+from std_msgs.msg import String
 
 
 class NavigasyonKoprusu(Node):
@@ -47,12 +62,19 @@ class NavigasyonKoprusu(Node):
         super().__init__('navigasyon_koprusu')
 
         self.tarama_pozisyonlari = self._tarama_pozisyonlari_yukle()
+        self._son_hedef_raf = None
         self._son_hedef_kat = None
+        # Madde 1: navigasyon basarili olunca tarama tetiklenip
+        # tetiklenmeyecegine bu iki alan karar veriyor.
+        self._son_hedef_eylem = None
+        self._son_hedef_katlar = None
+        self._tarama_proc = None
+        self._beklenen_tarama_raf = None
 
         self.komut_abone = self.create_subscription(
             String, '/komut', self._komut_geldi, 10)
 
-        self.hedef_kat_yayinci = self.create_publisher(Int32, '/hedef_kat', 10)
+        self.create_subscription(String, '/tarama_raporu', self._tarama_raporu_geldi, 10)
 
         self._action_client = ActionClient(self, NavigateToPose, 'navigate_to_pose')
         self.get_logger().info('navigate_to_pose action sunucusu bekleniyor...')
@@ -98,12 +120,19 @@ class NavigasyonKoprusu(Node):
 
         raf = sorgu.get('raf')
         kat = sorgu.get('kat')
+        eylem = sorgu.get('eylem')
+        katlar = sorgu.get('katlar')
         if raf not in self.tarama_pozisyonlari:
             self.get_logger().error(f"'{raf}' tarama_pozisyonlari.json'da yok.")
             return
 
-        self.get_logger().info(f"Hedef: raf={raf}, kat={kat} -> Nav2'ye gonderiliyor.")
+        self.get_logger().info(
+            f"Hedef: raf={raf}, kat={kat}, eylem={eylem}, katlar={katlar} "
+            "-> Nav2'ye gonderiliyor.")
+        self._son_hedef_raf = raf
         self._son_hedef_kat = kat
+        self._son_hedef_eylem = eylem
+        self._son_hedef_katlar = katlar
         self._hedefe_git(self.tarama_pozisyonlari[raf])
 
     def _hedefe_git(self, pozisyon: dict) -> None:
@@ -136,9 +165,52 @@ class NavigasyonKoprusu(Node):
         self.get_logger().info(
             f"Navigasyon sonucu: {'BASARILI' if basarili else 'BASARISIZ'} (status={durum})")
 
-        if basarili and self._son_hedef_kat is not None:
-            self.hedef_kat_yayinci.publish(Int32(data=self._son_hedef_kat))
-            self.get_logger().info(f'/hedef_kat yayinlandi: {self._son_hedef_kat}')
+        # Madde 1: eylem=='git' ise SADECE navigasyon isteniyor demektir --
+        # kamera donmez, tarama tetiklenmez. Sadece eylem=='tara' tarama
+        # baslatir.
+        if basarili and self._son_hedef_raf is not None and self._son_hedef_eylem == 'tara':
+            self._tarama_baslat(self._son_hedef_raf, self._son_hedef_katlar)
+        elif basarili and self._son_hedef_eylem == 'git':
+            self.get_logger().info("eylem='git' -- tarama tetiklenmedi.")
+
+    def _tarama_baslat(self, raf: str, katlar: list = None) -> None:
+        if self._tarama_proc is not None and self._tarama_proc.poll() is None:
+            self.get_logger().warn(
+                f"'{self._beklenen_tarama_raf}' icin tarama zaten devam ediyor, "
+                f"'{raf}' istegi yoksayildi.")
+            return
+
+        self.get_logger().info(f"'{raf}' icin Look-and-Move taramasi baslatiliyor...")
+        self._beklenen_tarama_raf = raf
+        komut = [
+            'ros2', 'run', 'depo_robotu', 'tarama_kontrol',
+            '--ros-args', '-p', f'raf:={raf}',
+        ]
+        if katlar:
+            komut += ['-p', f"katlar:={','.join(str(k) for k in katlar)}"]
+        self._tarama_proc = subprocess.Popen(komut)
+
+    def _tarama_raporu_geldi(self, mesaj: String) -> None:
+        if self._tarama_proc is None:
+            return
+
+        try:
+            rapor = json.loads(mesaj.data)
+        except json.JSONDecodeError:
+            self.get_logger().error('/tarama_raporu JSON olarak ayrıştırılamadı.')
+            return
+
+        if rapor.get('raf') != self._beklenen_tarama_raf:
+            return
+
+        self.get_logger().info(
+            f"'{rapor.get('raf')}' taramasi tamamlandi: "
+            f"{rapor.get('eslesen')}/{rapor.get('envanter_toplam')} eslesme "
+            f"(dogruluk %{rapor.get('dogruluk', 0) * 100:.1f}).")
+
+        self._tarama_proc.terminate()
+        self._tarama_proc = None
+        self._beklenen_tarama_raf = None
 
 
 def main(args=None):
@@ -148,6 +220,8 @@ def main(args=None):
         rclpy.spin(dugum)
     except KeyboardInterrupt:
         pass
+    if dugum._tarama_proc is not None and dugum._tarama_proc.poll() is None:
+        dugum._tarama_proc.terminate()
     dugum.destroy_node()
     rclpy.shutdown()
 

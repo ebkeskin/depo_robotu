@@ -25,6 +25,12 @@ degil. Bu yuzden ayni gercek kutu, uc pencerenin de gorus alanina
 girip 3 kez kaydedilebiliyor (canli B2 testinde dogrulandi - 8 gercek
 kutu her pencerede tekrar tekrar goruldu). Pencereler arasi tekrarlari
 _pencereler_arasi_tekillestir eler.
+
+PARAMETRE 'katlar' (Madde 1, navigasyon_koprusu.py entegrasyonu): "1,2"
+gibi virgullu bir liste ise sadece o katlar taranir, bos ise (varsayilan)
+eskisi gibi uc kat da taranir. Bu node'un kendisi hicbir LLM/niyet ayrimi
+BILMEZ -- "git" mi "tara" mi karari navigasyon_koprusu.py'de verilir, bu
+parametre sadece "hangi katlar" sorusuna cevap verir.
 """
 
 import json
@@ -66,6 +72,12 @@ class TaramaKontrol(Node):
         self.declare_parameter('raf', 'B2')
         self.raf_adi = self.get_parameter('raf').value
 
+        # Madde 1: bos ise (varsayilan) uc kat da taranir -- eski davranisla
+        # birebir ayni. Dolu ise (orn. "1,2") sadece o katlar taranir.
+        self.declare_parameter('katlar', '')
+        self.katlar_taranacak = self._katlar_parametresini_coz(
+            self.get_parameter('katlar').value)
+
         self.envanter = self._envanter_yukle()
 
         self.hedef_yayinci = self.create_publisher(Int32, '/hedef_kat', 10)
@@ -89,7 +101,32 @@ class TaramaKontrol(Node):
         self.zamanlayici = self.create_timer(0.2, self._adim)
 
         self.get_logger().info(
-            f"Tarama kontrol hazir. Raf '{self.raf_adi}' icin kat 1/2/3 taranacak.")
+            f"Tarama kontrol hazir. Raf '{self.raf_adi}' icin kat "
+            f"{self.katlar_taranacak} taranacak.")
+
+    def _katlar_parametresini_coz(self, ham: str) -> list:
+        """'katlar' ROS parametresini ("1,2" gibi) listeye cevirir.
+
+        Bos string (varsayilan) -> KATLAR (tum raf, eski davranis). Gecersiz
+        deger (KATLAR disi bir sayi, sayi olmayan token) -> uyar, tum rafa
+        geri don -- navigasyon_koprusu.py zaten sema tarafinda (sorgu_semasi.py
+        Sorgu.katlar_gecerli_mi) dogruladigi icin burada asla tetiklenmemesi
+        beklenir, bu sadece son savunma hatti.
+        """
+        ham = (ham or '').strip()
+        if not ham:
+            return list(self.KATLAR)
+        try:
+            katlar = sorted({int(p) for p in ham.split(',') if p.strip()})
+        except ValueError:
+            self.get_logger().warn(
+                f"'katlar' parametresi ayristirilamadi ({ham!r}), tum raf taranacak.")
+            return list(self.KATLAR)
+        if not katlar or any(k not in self.KATLAR for k in katlar):
+            self.get_logger().warn(
+                f"'katlar' parametresi gecersiz ({ham!r}), tum raf taranacak.")
+            return list(self.KATLAR)
+        return katlar
 
     def _envanter_yukle(self):
         yol = get_package_share_directory('depo_robotu') + '/araclar/envanter.json'
@@ -113,7 +150,7 @@ class TaramaKontrol(Node):
     def _bakilan_kat_geldi(self, mesaj):
         if self.durum != 'KILIT_BEKLE':
             return
-        hedef = self.KATLAR[self.kat_indeksi]
+        hedef = self.katlar_taranacak[self.kat_indeksi]
         if mesaj.data == hedef:
             self.kilit_sayaci += 1
         else:
@@ -179,7 +216,7 @@ class TaramaKontrol(Node):
 
     def _adim(self):
         if self.durum == 'KAT_ISTE':
-            hedef = self.KATLAR[self.kat_indeksi]
+            hedef = self.katlar_taranacak[self.kat_indeksi]
             self.hedef_yayinci.publish(Int32(data=hedef))
             self.get_logger().info(f'Kat {hedef} isteniyor...')
             self.kilit_sayaci = 0
@@ -187,12 +224,12 @@ class TaramaKontrol(Node):
 
         elif self.durum == 'KILIT_BEKLE':
             if self.kilit_sayaci >= self.KILIT_ESIGI:
-                hedef = self.KATLAR[self.kat_indeksi]
+                hedef = self.katlar_taranacak[self.kat_indeksi]
                 self.get_logger().info(f'Kat {hedef} kilitlendi, yerlesme bekleniyor.')
                 self._durum_degistir('YERLES')
             elif self._gecen_sure() > 10.0:
                 self.get_logger().warn(
-                    f'Kat {self.KATLAR[self.kat_indeksi]} icin kilit zaman asimi, devam ediliyor.')
+                    f'Kat {self.katlar_taranacak[self.kat_indeksi]} icin kilit zaman asimi, devam ediliyor.')
                 self._durum_degistir('YERLES')
 
         elif self.durum == 'YERLES':
@@ -203,7 +240,7 @@ class TaramaKontrol(Node):
 
         elif self.durum == 'TESPIT_TOPLA':
             if self._gecen_sure() > self.TOPLAMA_SURESI:
-                hedef = self.KATLAR[self.kat_indeksi]
+                hedef = self.katlar_taranacak[self.kat_indeksi]
                 tekil = self._tekillestir(self._kat_tespitleri)
                 tekil_kapsam_disi = self._tekillestir(self._kat_kapsam_disi)
                 # NOT: bu pencerenin (hedef tilt) tespitleri kendi 'kat'
@@ -216,7 +253,7 @@ class TaramaKontrol(Node):
                     f'({len(tekil_kapsam_disi)} kapsam disi elendi).')
 
                 self.kat_indeksi += 1
-                if self.kat_indeksi < len(self.KATLAR):
+                if self.kat_indeksi < len(self.katlar_taranacak):
                     self._durum_degistir('KAT_ISTE')
                 else:
                     self._durum_degistir('RAPOR')
@@ -235,7 +272,7 @@ class TaramaKontrol(Node):
         (bkz. sinif docstring'i - ayni kutu birden fazla pencerede goruntude
         olabiliyor).
         """
-        for kat in self.KATLAR:
+        for kat in self.katlar_taranacak:
             bu_kat = [t for t in self._havuz_tespitler if t['kat'] == kat]
             bu_kat_kapsam_disi = [t for t in self._havuz_kapsam_disi if t['kat'] == kat]
             self.tum_tespitler[kat] = self._pencereler_arasi_tekillestir(bu_kat)
@@ -248,6 +285,7 @@ class TaramaKontrol(Node):
         kapsam_disi_toplam = sum(len(v) for v in self.tum_kapsam_disi.values())
         rapor = {
             'raf': self.raf_adi,
+            'taranan_katlar': self.katlar_taranacak,
             'tespitler': self.tum_tespitler,
             'kapsam_disi': kapsam_disi_toplam,
             'kapsam_disi_detay': self.tum_kapsam_disi,
@@ -258,10 +296,16 @@ class TaramaKontrol(Node):
                 f'yanal_konum) olarak elendi, paydaya girmedi.')
 
         if self.envanter is not None:
-            gt_kutular = [k for k in self.envanter['kutular'] if k['raf'] == self.raf_adi]
+            # Sadece TARANAN katlardaki GT kutular sayilir -- taranmayan bir
+            # kat "eksik/kacirilan" gibi gorunup dogrulugu yapay dusurmemeli
+            # (Madde 1: kismi kat taramasi artik mumkun).
+            gt_kutular = [
+                k for k in self.envanter['kutular']
+                if k['raf'] == self.raf_adi and k['kat'] in self.katlar_taranacak
+            ]
             eslesen = 0
             fazla = 0
-            for kat in self.KATLAR:
+            for kat in self.katlar_taranacak:
                 gt_kat = [k for k in gt_kutular if k['kat'] == kat]
                 tespit_kat = list(self.tum_tespitler.get(kat, []))
                 for gt in gt_kat:

@@ -38,13 +38,75 @@ def _llm_sahte(json_metin: str):
 def test_adres_sorgusu(tmp_path):
     with patch.object(
         komut_cozumleyici, "llm_cagir",
-        _llm_sahte('{"tip":"adres","raf":"A1","kat":3,"filtre":null}'),
+        _llm_sahte('{"tip":"adres","raf":"A1","kat":3,"eylem":"git","katlar":null,"filtre":null}'),
     ):
         sonuc = komut_cozumleyici.komut_coz("A1'in 3. katina git")
     assert sonuc.basarili
     assert sonuc.sorgu.raf == "A1"
     assert sonuc.sorgu.kat == 3
+    assert sonuc.sorgu.eylem == "git"
     print("test_adres_sorgusu: OK")
+
+
+def test_adres_git_katsiz(tmp_path):
+    # Madde 1: "git" icin kat belirtilmesi artik zorunlu degil.
+    with patch.object(
+        komut_cozumleyici, "llm_cagir",
+        _llm_sahte('{"tip":"adres","raf":"A2","kat":null,"eylem":"git","katlar":null,"filtre":null}'),
+    ):
+        sonuc = komut_cozumleyici.komut_coz("A2'ye git")
+    assert sonuc.basarili
+    assert sonuc.sorgu.kat is None
+    print("test_adres_git_katsiz: OK")
+
+
+def test_adres_tara_belirli_katlar(tmp_path):
+    with patch.object(
+        komut_cozumleyici, "llm_cagir",
+        _llm_sahte('{"tip":"adres","raf":"B1","kat":null,"eylem":"tara","katlar":[1,2],"filtre":null}'),
+    ):
+        sonuc = komut_cozumleyici.komut_coz("B1'in 1. ve 2. katini tara")
+    assert sonuc.basarili
+    assert sonuc.sorgu.eylem == "tara"
+    assert sonuc.sorgu.katlar == [1, 2]
+    print("test_adres_tara_belirli_katlar: OK")
+
+
+def test_adres_git_ile_katlar_reddedilir(tmp_path):
+    # eylem=git iken katlar dolu olamaz (git tarama yapmaz) -- dogrula() hatasi.
+    with patch.object(
+        komut_cozumleyici, "llm_cagir",
+        _llm_sahte('{"tip":"adres","raf":"A2","kat":null,"eylem":"git","katlar":[1],"filtre":null}'),
+    ):
+        sonuc = komut_cozumleyici.komut_coz("A2'ye git")
+    assert not sonuc.basarili
+    print("test_adres_git_ile_katlar_reddedilir: OK")
+
+
+def test_arama_raf_filtresi_daraltir(tmp_path):
+    # ORNEK_ENVANTER'da 2 kirmizi kutu var, ikisi de A1'de -- raf=B2 filtresi
+    # eklenince 0 eslesme donmeli (raf'in gercekten uygulandigini kanitlar).
+    envanter_yolu = _sahte_envanter_yaz(tmp_path)
+    with patch.object(
+        komut_cozumleyici, "llm_cagir",
+        _llm_sahte('{"tip":"arama","raf":null,"kat":null,"filtre":{"renk":"kirmizi","boyut":null,"raf":"B2"}}'),
+    ):
+        sonuc = komut_cozumleyici.komut_coz("B2'deki kirmizi kutuyu bul", envanter_yolu=envanter_yolu)
+    assert not sonuc.basarili
+    print("test_arama_raf_filtresi_daraltir: OK")
+
+
+def test_arama_raf_filtresi_eslesir(tmp_path):
+    envanter_yolu = _sahte_envanter_yaz(tmp_path)
+    with patch.object(
+        komut_cozumleyici, "llm_cagir",
+        _llm_sahte('{"tip":"arama","raf":null,"kat":null,"filtre":{"renk":"yesil","boyut":null,"raf":"B2"}}'),
+    ):
+        sonuc = komut_cozumleyici.komut_coz("B2'deki yesil kutuyu bul", envanter_yolu=envanter_yolu)
+    assert sonuc.basarili
+    assert not sonuc.belirsiz
+    assert sonuc.eslesme_sayisi == 1
+    print("test_arama_raf_filtresi_eslesir: OK")
 
 
 def test_arama_tek_eslesme(tmp_path):
@@ -108,10 +170,10 @@ def test_gecersiz_raf_reddedilir(tmp_path):
 
 
 def test_eksik_alan_reddedilir(tmp_path):
-    # adres tipi ama kat eksik
+    # adres tipi ama eylem eksik (kat artik zorunlu degil, bkz. test_adres_git_katsiz)
     with patch.object(
         komut_cozumleyici, "llm_cagir",
-        _llm_sahte('{"tip":"adres","raf":"A1","kat":null,"filtre":null}'),
+        _llm_sahte('{"tip":"adres","raf":"A1","kat":null,"eylem":null,"katlar":null,"filtre":null}'),
     ):
         sonuc = komut_cozumleyici.komut_coz("A1'e git")
     assert not sonuc.basarili
@@ -144,8 +206,13 @@ if __name__ == "__main__":
     with tempfile.TemporaryDirectory() as td:
         tmp_path = Path(td)
         test_adres_sorgusu(tmp_path)
+        test_adres_git_katsiz(tmp_path)
+        test_adres_tara_belirli_katlar(tmp_path)
+        test_adres_git_ile_katlar_reddedilir(tmp_path)
         test_arama_tek_eslesme(tmp_path)
         test_arama_belirsiz_coklu_eslesme(tmp_path)
+        test_arama_raf_filtresi_daraltir(tmp_path)
+        test_arama_raf_filtresi_eslesir(tmp_path)
         test_sayim_sorgusu(tmp_path)
         test_arama_sifir_eslesme(tmp_path)
         test_gecersiz_raf_reddedilir(tmp_path)

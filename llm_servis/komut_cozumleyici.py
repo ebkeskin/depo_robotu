@@ -33,25 +33,43 @@ JSON semasi (alanlar arasinda TAM OLARAK bu adlari kullan):
 {
   "tip": "adres" | "arama" | "sayim",
   "raf": "A1".."C3" (sadece tip=adres ise, yoksa null),
-  "kat": 1 | 2 | 3 (sadece tip=adres ise, yoksa null),
-  "filtre": {"renk": "...", "boyut": "..."} (tip=arama veya sayim ise,
-             yoksa null. renk ve boyuttan en az biri dolu olmali.)
+  "kat": 1 | 2 | 3 (tip=adres ve komutta belirli bir kat geciyorsa, yoksa null),
+  "eylem": "git" | "tara" (SADECE tip=adres ise zorunlu, yoksa null),
+  "katlar": [1,2] gibi bir liste (SADECE eylem=tara VE komutta belirli
+             katlar sayiliyorsa, orn. "1. ve 2. katini tara"; komut tum
+             rafi taramayi istiyorsa (orn. "tara", "ne var") null birak
+             -- null, "her 3 kati da tara" demektir),
+  "filtre": {"renk": "...", "boyut": "...", "raf": "..."} (tip=arama
+             veya sayim ise, yoksa null. renk, boyut, raf'tan en az biri
+             dolu olmali -- ucu de bos olamaz.)
 }
+
+eylem ayrimi (SADECE tip=adres icin gecerli, cok onemli):
+- "git" -> komut SADECE robotu bir yere goturmek istiyor, kamerayi
+  DONDURME, tarama YAPMA. Ornek: "A2'ye git", "B1'in 2. katina git".
+- "tara" -> komut rafi/kati INCELEMEK istiyor (kutulari gormek/saymak
+  icin). Ornek: "A2'yi tara", "A2'de ne var", "B1'in 1. ve 2. katina bak".
+  "git" fiili gecse bile, "git ve bak/tara/incele/goster" gibi INCELEME
+  niyeti varsa eylem="tara" olmali.
 
 Gecerli renkler: kirmizi, yesil, mavi, sari, karton
 Gecerli boyutlar: buyuk, orta, kucuk
 Gecerli raflar: A1, A2, A3, B1, B2, B3, C1, C2, C3
 
 Ornekler:
-"A1'in 3. katina git" -> {"tip":"adres","raf":"A1","kat":3,"filtre":null}
-"Kirmizi kutuyu bul" -> {"tip":"arama","raf":null,"kat":null,"filtre":{"renk":"kirmizi","boyut":null}}
-"Kac yesil kutu var?" -> {"tip":"sayim","raf":null,"kat":null,"filtre":{"renk":"yesil","boyut":null}}
-"Buyuk mavi kutu neredeydi?" -> {"tip":"arama","raf":null,"kat":null,"filtre":{"renk":"mavi","boyut":"buyuk"}}
+"A1'in 3. katina git" -> {"tip":"adres","raf":"A1","kat":3,"eylem":"git","katlar":null,"filtre":null}
+"A2'ye git" -> {"tip":"adres","raf":"A2","kat":null,"eylem":"git","katlar":null,"filtre":null}
+"A2'yi tara" -> {"tip":"adres","raf":"A2","kat":null,"eylem":"tara","katlar":null,"filtre":null}
+"B1'in 1. ve 2. katini tara" -> {"tip":"adres","raf":"B1","kat":null,"eylem":"tara","katlar":[1,2],"filtre":null}
+"Kirmizi kutuyu bul" -> {"tip":"arama","raf":null,"kat":null,"filtre":{"renk":"kirmizi","boyut":null,"raf":null}}
+"B2'deki kirmizi kutuyu bul" -> {"tip":"arama","raf":null,"kat":null,"filtre":{"renk":"kirmizi","boyut":null,"raf":"B2"}}
+"Kac yesil kutu var?" -> {"tip":"sayim","raf":null,"kat":null,"filtre":{"renk":"yesil","boyut":null,"raf":null}}
+"Buyuk mavi kutu neredeydi?" -> {"tip":"arama","raf":null,"kat":null,"filtre":{"renk":"mavi","boyut":"buyuk","raf":null}}
 
-ONEMLI: Sen sadece NIYETI cikar (renk/boyut/adres). Kac kutu bulundugunu
-veya koordinat HESAPLAMA -- bu senin isin degil, sonradan veritabaninda
-yapilacak. Komut semaya uymuyorsa veya depo robotuyla ilgisizse su JSON'u
-don: {"tip": null, "hata": "kisa aciklama"}
+ONEMLI: Sen sadece NIYETI cikar (renk/boyut/raf/eylem/adres). Kac kutu
+bulundugunu veya koordinat HESAPLAMA -- bu senin isin degil, sonradan
+veritabaninda yapilacak. Komut semaya uymuyorsa veya depo robotuyla
+ilgisizse su JSON'u don: {"tip": null, "hata": "kisa aciklama"}
 """
 
 # Sprint 1'deki API anahtari sizinti olayindan sonra: bu dosya envanter
@@ -76,6 +94,8 @@ def _filtreye_uyanlar(envanter: list[dict], filtre: Filtre) -> list[dict]:
         if filtre.renk is not None and kutu.get("renk") != filtre.renk.value:
             continue
         if filtre.boyut is not None and kutu.get("boyut") != filtre.boyut.value:
+            continue
+        if filtre.raf is not None and kutu.get("raf") != filtre.raf:
             continue
         sonuc.append(kutu)
     return sonuc
