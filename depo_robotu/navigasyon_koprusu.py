@@ -79,6 +79,7 @@ izole test edilebilsin diye.
 import json
 import math
 import re
+import signal
 import subprocess
 from pathlib import Path
 
@@ -474,6 +475,21 @@ class NavigasyonKoprusu(Node):
 def main(args=None):
     rclpy.init(args=args)
     dugum = NavigasyonKoprusu()
+
+    # Sprint 5 madde 6 test oturumunda bulundu (bkz. NOTLAR.md SORUN 8 ek
+    # notu, 24 Agustos 2026): duz `pkill`/`kill` (imzasiz, yani SIGTERM)
+    # Python'da varsayilan olarak sureci ANINDA sonlandirir, asagidaki
+    # `except KeyboardInterrupt` bloğu HIC calismaz -- bu da tarama_kontrol
+    # alt surecini yetim birakiyordu. SIGTERM'i SIGINT gibi KeyboardInterrupt'a
+    # cevirip AYNI temizlik yoluna sokuyoruz. NOT: `kill -9` (SIGKILL) hicbir
+    # sinyal isleyicisi tarafindan yakalanamaz -- ona karsi tek koruma disaridan
+    # (CLAUDE.md/NOTLAR.md/PROJE_DOSYASI.md temizlik komutlarina tarama_kontrol'u
+    # de eklemek) saglanabilir, kod tarafinda degil.
+    def _sigterm_isleyici(signum, frame):
+        raise KeyboardInterrupt
+
+    signal.signal(signal.SIGTERM, _sigterm_isleyici)
+
     try:
         rclpy.spin(dugum)
     except KeyboardInterrupt:

@@ -258,12 +258,21 @@ pkill -f "gz sim"
 pkill -f ruby
 pkill -f parameter_bridge
 pkill -f robot_state_publisher
+pkill -f tarama_kontrol
 sleep 2
 ps aux | grep -c "gz sim"   # küçük bir sayı dönmeli
 ```
 
 **Alışkanlık**
 Garip bir davranış görüldüğünde ilk iş bu temizliği yapmak.
+
+**Ek not (24 Ağustos 2026, Sprint 5 madde 6 test oturumu):** `tarama_kontrol`
+listeye sonradan eklendi — `navigasyon_koprusu.py` onu subprocess olarak
+başlatıyor (bkz. modülünün kendi docstring'i), ve `navigasyon_koprusu`'nün
+kendisi `kill -9` ile (veya sinyalsiz `pkill`) durdurulursa çocuk süreç
+yetim kalıp arka planda çalışmaya devam ediyor. Canlı test oturumlarında
+bu şekilde unutulmuş 2 `tarama_kontrol` süreci bulundu — büyük ihtimalle
+sistem yükü/ısınmaya katkısı olmuş.
 
 ---
 

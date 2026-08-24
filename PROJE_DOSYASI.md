@@ -660,10 +660,13 @@ arayüz (`-g`) ayrı süreçler; yeni arayüz eski sunucuya bağlanabiliyor.
 ```bash
 pkill -f "gz sim"; pkill -f ruby
 pkill -f parameter_bridge; pkill -f robot_state_publisher
+pkill -f tarama_kontrol
 sleep 2
 ```
 
-**Alışkanlık:** Garip bir davranış görüldüğünde ilk iş bu.
+**Alışkanlık:** Garip bir davranış görüldüğünde ilk iş bu. `tarama_kontrol`
+Sprint 5'te (navigasyon_koprusu.py'nin onu subprocess olarak başlatmasıyla)
+eklendi — bkz. NOTLAR.md SORUN 8 ek notu (24 Ağustos 2026).
 
 ## S4 — teleop KeyError
 
@@ -1387,6 +1390,7 @@ ros2 topic echo /camera/camera_info --once
 ```bash
 pkill -f "gz sim"; pkill -f ruby
 pkill -f parameter_bridge; pkill -f robot_state_publisher
+pkill -f tarama_kontrol
 sleep 2
 ```
 

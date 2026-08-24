@@ -59,9 +59,11 @@ colcon test-result --verbose
 
 If Gazebo processes get into a confused state (Entity Tree and scene disagree, changes don't show up),
 kill leftover processes before relaunching — `Ctrl+C` does not always take down both `gz sim -s`
-(server) and `-g` (client):
+(server) and `-g` (client). `tarama_kontrol` is included because `navigasyon_koprusu.py` spawns it as a
+subprocess (see its module docstring) — killing `navigasyon_koprusu` with `kill -9`/plain `pkill` leaves
+that child running as an orphan, since a subprocess is not attached to the parent's own signal handling:
 ```bash
-pkill -f "gz sim"; pkill -f ruby; pkill -f parameter_bridge; pkill -f robot_state_publisher
+pkill -f "gz sim"; pkill -f ruby; pkill -f parameter_bridge; pkill -f robot_state_publisher; pkill -f tarama_kontrol
 ```
 
 Regenerate warehouse box layout (from `araclar/`):
