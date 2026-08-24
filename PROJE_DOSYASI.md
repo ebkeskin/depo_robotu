@@ -1,9 +1,21 @@
 # PROJE DOSYASI — Yapay Zeka Destekli Akıllı Depo Robotu Simülasyonu
 
-**Son güncelleme:** 23 Ağustos 2026
-**Durum:** Sprint 4 (LLM komut çözümleme) tamamlandı ve gerçek API ile
-doğrulandı; Sprint 3 — Nav2 navigasyonu, adres doğrulama hâlâ devam ediyor
-(6/9 raf test edildi, A3 açık sorun) (§7, §12)
+**Son güncelleme:** 24 Ağustos 2026
+**Durum:** Sprint 5 (Entegrasyon ve envanter) **5/5 madde kod düzeyinde
+TAMAMLANDI** — zincir kapatma, pasif envanter MVP, envanterden sorgu,
+hedefe varınca görsel doğrulama, oracle vs algı karşılaştırması. AÇIK
+KALAN ENGEL: `NOTLAR.md` SORUN 18 — Nav2 planlayıcısı spawn noktası
+civarında sistematik olarak başarısız oluyor (4+ kez tekrarlandı, kök
+sebep bulunamadı), bu yüzden Sprint 5 madde 1 ve 4'ün **uçtan uca canlı
+Nav2 doğrulaması hâlâ yapılamadı** — kod hazır ve izole testlerle
+doğrulandı, ama gerçek navigasyon başarısı gerektiren son adım eksik.
+**Sıradaki iş Sprint 6 (ölçüm, cilalama, sunum) — ama SORUN 18, Sprint
+6'dan ÖNCE veya en azından PARALELDE öncelikli olarak ele alınmalı**
+(bkz. §7 Sprint 6 başındaki uyarı): Sprint 6'nın "görev başarı oranı"
+gibi metrikleri de gerçek Nav2 navigasyonuna dayanıyor, SORUN 18 açık
+kaldığı sürece bu metrikler de ölçülemez. Sprint 3 — Nav2 navigasyonu,
+adres doğrulama hâlâ devam ediyor (6/9 raf test edildi, A3 açık sorun)
+(§7, §12)
 
 > Bu dosya projenin tam devir belgesidir. Yeni bir sohbete bu dosyayı vererek
 > kaldığın yerden devam edebilirsin. Ne yapıldığı, neden yapıldığı, nasıl
@@ -1092,6 +1104,17 @@ olmadığı için yamuk duruş veya yandaki bir direk/kutu bu hatayı çok daha
 büyütebilir (bkz. yukarıdaki BİLİNEN SINIR notu).
 
 ## Sprint 6 — Ölçüm, cilalama, sunum ☐
+
+> **ÖNCELİK UYARISI (24 Ağustos 2026): Sprint 6'ya başlamadan önce (veya
+> en azından paralelde) `NOTLAR.md` SORUN 18 ele alınmalı.** SORUN 18
+> (Nav2 planlayıcısının spawn noktası civarında sistematik başarısızlığı,
+> "Robot is out of bounds of the costmap" — bkz. detaylar) bu konuşma
+> içinde **4'ten fazla kez** tekrarlandı ve artık rastgele bir flakiness
+> değil, yeniden üretilebilir bir kalıp. Aşağıdaki "Görev başarı oranı"
+> metriği DOĞRUDAN gerçek Nav2 navigasyon başarısına dayanıyor — SORUN 18
+> açık kaldığı sürece bu metrik (ve Sprint 5 madde 1/4'ün uçtan uca canlı
+> doğrulaması) ölçülemez/tamamlanamaz. Kök sebep henüz bulunmadı; ayrı,
+> odaklanmış bir araştırma oturumu gerektirebilir.
 
 **Metrikler** (ground truth sayesinde nicel):
 
