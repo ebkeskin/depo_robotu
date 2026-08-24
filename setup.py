@@ -41,6 +41,7 @@ setup(
             'adres_dogrula = depo_robotu.adres_dogrula:main',
             'konum_yakala = depo_robotu.konum_yakala:main',
             'navigasyon_koprusu = depo_robotu.navigasyon_koprusu:main',
+            'oracle_algi_karsilastirma = depo_robotu.oracle_algi_karsilastirma:main',
         ],
     },
 )
