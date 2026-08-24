@@ -111,6 +111,41 @@ altyapisi AYNEN yeniden kullaniliyor -- _robot_envanterinde_ara'nin donduğu
 liste zaten uyumlu 'raf'/'kat' anahtarlari tasiyor, ekstra kod gerekmedi.
 Ground-truth tip:arama ile PARİTE: tek eslesmede bile navigasyon
 BASLATILMAZ, sadece raporlanir (mevcut tip:arama davranisiyla tutarli).
+
+HEDEFE VARINCA GORSEL DOGRULAMA (PROJE_DOSYASI.md Sprint 5 RESMI
+roadmap'inin 4. maddesi): _secimi_uygula (Madde 5 -- hem ground-truth
+hem kendi-envanteri kaynakli secimler icin ortak) ve _en_yakina_git
+("en yakini bul") navigasyona baslamadan once bilinen renk/boyut/kat
+bilgisini self._son_dogrulama_beklentisi'ne yazar. Navigasyon basariyla
+bitince (_navigasyon_tamamlandi, eylem=='git' dalinda) bu alan doluysa,
+_tarama_baslat TEK KATLIK bir cagriyla (katlar=[beklenen_kat]) yeniden
+kullanilir -- tarama_kontrol.py'nin kilit/yerlesme/toplama state
+makinesi ve raf-kapsamlama filtresi HICBIR degisiklik olmadan aynen
+calisir, sifirdan bir orkestrasyon yazilmadi. Duz "X'e git" (LLM'in
+tip:adres sorgusu) HER ZAMAN bu alani None'a sifirlar -- dogrulanacak
+belirli bir kutu yoktur, tarama hic tetiklenmez (mevcut davranis).
+
+TASARIM KARARI (dogrulama SADECE RENGE bakar, boyuta degil): bu
+projede boyut siniflandirmasinin bilinen, belgelenen bir kozmetik
+guvenilirlik sorunu var (bkz. PROJE_DOSYASI.md SS12 ACIK MADDE 1
+guncellemesi -- "boyut 'kucuk' yanlis siniflandiriliyor, renk
+eslesmesini etkilemiyor"). Boyutu "uyusmuyor" kararina dahil etmek,
+sirf gurultulu bir boyut tahmini yuzunden dogru olan bir renk
+eslesmesini yanlislikla "uyusmuyor" saydirma riski tasirdi. Boyut yine
+de log mesajinda bilgi amacli gosterilir.
+
+Doğrulama tarama_raporu'nu da (normal tara gibi) robot_envanteri.json'a
+yazar (_robot_envanterini_guncelle, asagidaki BUG DUZELTMESI sayesinde
+artik guvenli -- diger katlarin verisini SILMEZ).
+
+BUG DUZELTMESI (24 Agustos 2026, dogrulama ozelligini tasarlarken
+bulundu): _robot_envanterini_guncelle eskiden rafin TUM girdisini yeni
+raporla DEGISTIRIYORDU. Bu, TEK KATLIK bir tarama (Madde 1'in kismi
+"1. katini tara" komutu VEYA bu maddenin dogrulama taramasi) geldiginde,
+o rafin ONCEDEN BILINEN diger katlarinin verisini SILIYORDU -- Madde 4
+ilk yazildiginda fark edilmemis, bagimsiz bir hata. Duzeltme: rapor'un
+'taranan_katlar' alani (Madde 1'de zaten var) kullanilarak sadece o
+katlar GUNCELLENIR, diger katlar DOKUNULMADAN kalir.
 """
 
 import datetime
@@ -189,6 +224,10 @@ class NavigasyonKoprusu(Node):
         # Madde 6: devam eden navigasyonun goal_handle'i -- iptal icin
         # cancel_goal_async() burada cagirilir. None = navigasyon yok.
         self._son_goal_handle = None
+        # Gorsel dogrulama: {'renk','boyut','kat'} veya None. Sadece
+        # secim/en_yakin akislarinda doldurulur -- duz "git" HER ZAMAN
+        # None'a sifirlar (bkz. modul docstring'i).
+        self._son_dogrulama_beklentisi = None
 
         # Madde 3: "en yakini bul" icin robotun su anki map-frame pozu.
         self._tf_buffer = Buffer()
@@ -295,6 +334,9 @@ class NavigasyonKoprusu(Node):
         self._son_hedef_kat = kat
         self._son_hedef_eylem = eylem
         self._son_hedef_katlar = katlar
+        # Gorsel dogrulama: duz adres sorgusunda dogrulanacak belirli bir
+        # kutu yok -- onceki bir secimden kalma bir beklenti varsa SIZMASIN.
+        self._son_dogrulama_beklentisi = None
         self._hedefe_git(self.tarama_pozisyonlari[raf])
 
     def _secim_indeksini_coz(self, metin: str):
@@ -348,6 +390,12 @@ class NavigasyonKoprusu(Node):
         self._son_hedef_kat = secilen.get('kat')
         self._son_hedef_eylem = 'git'
         self._son_hedef_katlar = None
+        # Gorsel dogrulama: secilen kutunun renk/boyut/kat'i biliniyor --
+        # hedefe varinca tek katlik bir dogrulama taramasi tetiklenecek.
+        self._son_dogrulama_beklentisi = {
+            'renk': secilen.get('renk'), 'boyut': secilen.get('boyut'),
+            'kat': secilen.get('kat'),
+        }
         self._hedefe_git(self.tarama_pozisyonlari[raf])
 
     @staticmethod
@@ -406,6 +454,11 @@ class NavigasyonKoprusu(Node):
         self._son_hedef_kat = secilen.get('kat')
         self._son_hedef_eylem = 'git'
         self._son_hedef_katlar = None
+        # Gorsel dogrulama: bkz. _secimi_uygula'daki ayni yorum.
+        self._son_dogrulama_beklentisi = {
+            'renk': secilen.get('renk'), 'boyut': secilen.get('boyut'),
+            'kat': secilen.get('kat'),
+        }
         self._hedefe_git(self.tarama_pozisyonlari[raf])
 
     @staticmethod
@@ -605,15 +658,42 @@ class NavigasyonKoprusu(Node):
         except OSError as e:
             self.get_logger().error(f'robot_envanteri.json yazilamadi: {e}')
 
+    @staticmethod
+    def _birlesmis_tespitler(mevcut_tespitler: dict, rapor: dict) -> dict:
+        """BUG DUZELTMESI (24 Agustos 2026, bkz. modul docstring'i): rapor'un
+        SADECE 'taranan_katlar' alanindaki katlarini gunceller,
+        mevcut_tespitler'deki DIGER katlara DOKUNMAZ -- saf, deterministik
+        fonksiyon (dosya/saat erisimi yok), ROS'suz izole test edilebilsin
+        diye _robot_envanterini_guncelle'den ayrildi.
+
+        'taranan_katlar' rapor'da yoksa (eski format ihtimaline karsi
+        savunma) rapor'daki tum katlar taranmis sayilir -- eski (hatali
+        ama zararsiz, cunku o zaman TUM katlar zaten rapor'daydi) davranisa
+        geriye donuk uyumlu.
+        """
+        taranan_katlar = rapor.get('taranan_katlar')
+        if taranan_katlar is None:
+            taranan_katlar = list(rapor.get('tespitler', {}).keys())
+
+        yeni = dict(mevcut_tespitler)
+        rapor_tespitleri = rapor.get('tespitler', {})
+        for kat in taranan_katlar:
+            yeni[str(kat)] = rapor_tespitleri.get(str(kat), [])
+        return yeni
+
     def _robot_envanterini_guncelle(self, rapor: dict) -> None:
-        """Madde 4: bir /tarama_raporu geldiginde o rafin girdisini
-        YENISIYLE DEGISTIRIR (bkz. modul docstring'i, MVP tasarim karari)."""
+        """Madde 4: bir /tarama_raporu geldiginde o rafin SADECE taranan
+        katlarini gunceller -- eskiden rafin TUM girdisini degistiriyordu,
+        bu da kismi (tek kat) bir tarama geldiginde o rafin onceden
+        bilinen diger katlarini SILIYORDU (bkz. modul docstring'i, BUG
+        DUZELTMESI)."""
         raf = rapor.get('raf')
         if raf is None:
             return
-        self.robot_envanteri.setdefault('raflar', {})[raf] = {
+        mevcut = self.robot_envanteri.setdefault('raflar', {}).get(raf, {'tespitler': {}})
+        self.robot_envanteri['raflar'][raf] = {
             'son_tarama_zamani': datetime.datetime.now().isoformat(timespec='seconds'),
-            'tespitler': rapor.get('tespitler', {}),
+            'tespitler': self._birlesmis_tespitler(mevcut.get('tespitler', {}), rapor),
         }
         self._robot_envanterini_kaydet()
 
@@ -658,9 +738,13 @@ class NavigasyonKoprusu(Node):
 
         # Madde 1: eylem=='git' ise SADECE navigasyon isteniyor demektir --
         # kamera donmez, tarama tetiklenmez. Sadece eylem=='tara' tarama
-        # baslatir.
+        # baslatir. Istisna: eylem=='git' AMA bir dogrulama beklentisi
+        # varsa (secim/en_yakin akislari), TEK KATLIK bir dogrulama
+        # taramasi tetiklenir (bkz. modul docstring'i).
         if basarili and self._son_hedef_raf is not None and self._son_hedef_eylem == 'tara':
             self._tarama_baslat(self._son_hedef_raf, self._son_hedef_katlar)
+        elif basarili and self._son_hedef_eylem == 'git' and self._son_dogrulama_beklentisi is not None:
+            self._dogrulama_taramasini_baslat(self._son_hedef_raf, self._son_dogrulama_beklentisi)
         elif basarili and self._son_hedef_eylem == 'git':
             self.get_logger().info("eylem='git' -- tarama tetiklenmedi.")
 
@@ -680,6 +764,54 @@ class NavigasyonKoprusu(Node):
         if katlar:
             komut += ['-p', f"katlar:={','.join(str(k) for k in katlar)}"]
         self._tarama_proc = subprocess.Popen(komut)
+
+    def _dogrulama_taramasini_baslat(self, raf: str, beklenti: dict) -> None:
+        kat = beklenti.get('kat')
+        if kat is None:
+            self.get_logger().warn(
+                'Dogrulama beklentisinde kat bilgisi yok, dogrulama atlandi.')
+            self._son_dogrulama_beklentisi = None
+            return
+        self.get_logger().info(
+            f"Hedefe varildi -- dogrulama icin raf={raf} kat={kat} taraniyor "
+            f"(beklenen: {beklenti.get('renk')} {beklenti.get('boyut')})...")
+        self._tarama_baslat(raf, katlar=[kat])
+
+    @staticmethod
+    def _dogrulama_sonucunu_belirle(beklenti: dict, gorulen_tespitler: list) -> str:
+        """Gorsel dogrulama: TF/subprocess/dosya erisiminden bagimsiz saf
+        karar mantigi -- Madde 3/6'daki ayni ayrim deseni (bkz.
+        _en_yakin_eslesmeyi_sec/_iptal_eylemini_belirle). SADECE RENGE
+        bakar (bkz. modul docstring'i, TASARIM KARARI).
+
+        Returns: 'dogrulandi' | 'uyusmuyor' | 'gorulemedi'
+        """
+        if not gorulen_tespitler:
+            return 'gorulemedi'
+        for t in gorulen_tespitler:
+            if t.get('renk') == beklenti.get('renk'):
+                return 'dogrulandi'
+        return 'uyusmuyor'
+
+    def _dogrulamayi_raporla(self, rapor: dict, beklenti: dict) -> None:
+        raf = rapor.get('raf')
+        kat = beklenti.get('kat')
+        gorulenler = rapor.get('tespitler', {}).get(str(kat), [])
+        durum = self._dogrulama_sonucunu_belirle(beklenti, gorulenler)
+
+        if durum == 'dogrulandi':
+            self.get_logger().info(
+                f"Dogrulandi: {raf} kat {kat}'te {beklenti.get('renk')} bir kutu "
+                f"goruldu (beklenen boyut: {beklenti.get('boyut')}).")
+        elif durum == 'uyusmuyor':
+            gorulen_renkler = ', '.join(sorted({g.get('renk') for g in gorulenler if g.get('renk')}))
+            self.get_logger().warn(
+                f"Uyusmuyor: {raf} kat {kat}'te {beklenti.get('renk')} "
+                f"bekleniyordu, bunun yerine {gorulen_renkler or 'baska bir sey'} goruldu.")
+        else:
+            self.get_logger().warn(
+                f"Gorulemedi: {raf} kat {kat}'te beklenen {beklenti.get('renk')} "
+                'kutu tespit edilemedi.')
 
     def _tarama_raporu_geldi(self, mesaj: String) -> None:
         if self._tarama_proc is None:
@@ -701,7 +833,14 @@ class NavigasyonKoprusu(Node):
 
         # Madde 4: pasif envanter MVP -- bu taramanin GERCEKTEN gordugu
         # (ground truth degil) kutular robot_envanteri.json'a kaydedilir.
+        # Dogrulama taramalari da (tek katlik) buraya dahildir -- artik
+        # SADECE taranan_katlar guncellenir, diger katlar SILINMEZ.
         self._robot_envanterini_guncelle(rapor)
+
+        # Gorsel dogrulama: bu bir dogrulama taramasiysa sonucu raporla.
+        if self._son_dogrulama_beklentisi is not None:
+            self._dogrulamayi_raporla(rapor, self._son_dogrulama_beklentisi)
+            self._son_dogrulama_beklentisi = None
 
         self._tarama_proc.terminate()
         self._tarama_proc = None
