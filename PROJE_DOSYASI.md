@@ -757,15 +757,15 @@ daha büyük görünsün.
 - `kamera_kontrol.py`: LIDAR mesafesinden açı hesabı
 - TF tilt yansıması doğrulandı
 
-### 2C — Geometri ve konumlandırma 🔄 KISMEN TAMAMLANDI (4-5 açık)
+### 2C — Geometri ve konumlandırma 🔄 KISMEN TAMAMLANDI (5 açık)
 
 | # | İş | Durum |
 |---|---|---|
 | 1 | TF ağacı doğrulama | ✅ |
 | 2 | Kamera iç parametreleri | ✅ hazır (`/camera/camera_info`, kalibrasyon gerekmez) |
 | 3 | **Işın-düzlem kesişimi** | ✅ TAMAMLANDI — hem basit (Aşama B, `kat_tespit.py`) hem piksel bazlı (Aşama A, `piksel_kat_tespit.py` → `kutu_tespit.py`) |
-| 4 | Mesafe: oracle modu | ☐ hâlâ yapılmadı — bilinçli erteleme, bkz. §12 |
-| 5 | Mesafe: algı modu (line fitting) | ☐ hâlâ yapılmadı — bilinçli erteleme, bkz. §12 |
+| 4 | Mesafe: oracle modu | ✅ TAMAMLANDI (24 Ağustos 2026) — `oracle_algi_karsilastirma.py`, bkz. §7 Sprint 5 madde 5 |
+| 5 | Mesafe: algı modu (line fitting) | ☐ hâlâ yapılmadı — bilinçli erteleme (kapsam dışı bırakıldı, bkz. §7 Sprint 5 madde 5). Fiilen kullanılan tek algı kaynağı hâlâ tek-nokta LIDAR minimum'u (`self.mesafe`) — gerçek bir çizgi uydurma değil |
 
 ### 2D — Nesne tespiti 🔄 DEVAM EDİYOR (raf kapsamlama düzeltildi, 23 Ağustos 2026)
 
@@ -1032,15 +1032,15 @@ anahtarı olmadan LLM çağrısı mock'lanarak test ediliyor, hepsi geçiyor.
 **Güvenlik:** API anahtarı `.env`'de tutulacak, `.bashrc`'ye **asla** yazılmayacak,
 `.gitignore`'a eklenecek. (Sprint 1'de bu konuda bir olay yaşandı.)
 
-## Sprint 5 — Entegrasyon ve envanter ☐
+## Sprint 5 — Entegrasyon ve envanter 🔄 KOD TAMAMLANDI (24 Ağustos 2026, canlı Nav2 doğrulaması SORUN 18 ile sınırlı)
 
-| # | İş |
-|---|---|
-| 1 | Zinciri kapat: komut → LLM → sorgu → navigasyon → tarama → doğrulama |
-| 2 | Envanter kaydı: robot dolaştıkça gördüklerini adresiyle biriktirir |
-| 3 | Envanterden sorgu: "yeşil kutu nerede?" → aramadan cevap |
-| 4 | Hedefe varınca görsel doğrulama |
-| 5 | Oracle vs algı karşılaştırması |
+| # | İş | Durum |
+|---|---|---|
+| 1 | Zinciri kapat: komut → LLM → sorgu → navigasyon → tarama → doğrulama | ✅ `navigasyon_koprusu.py` — kod tamam, uçtan uca canlı doğrulama NOTLAR.md SORUN 18 (Nav2 spawn civarı sistematik hatası) yüzünden sınırlı |
+| 2 | Envanter kaydı: robot dolaştıkça gördüklerini adresiyle biriktirir | ✅ MVP — sadece açıkça "tara" edilen raflardan, bkz. Madde 4 pasif envanter notu (kapsam sınırı bilinçli) |
+| 3 | Envanterden sorgu: "yeşil kutu nerede?" → aramadan cevap | ✅ Hem ground-truth hem kendi-envanteri için, canlı doğrulandı |
+| 4 | Hedefe varınca görsel doğrulama | ✅ Kod + izole testler tamam (regresyon testi dahil), canlı Nav2 ile uçtan uca doğrulama SORUN 18 yüzünden yapılamadı |
+| 5 | Oracle vs algı karşılaştırması | ✅ TAMAMLANDI — bkz. aşağıdaki sonuç tablosu |
 
 **Envanter kaydı formatı:**
 ```json
@@ -1054,6 +1054,42 @@ anahtarı olmadan LLM çağrısı mock'lanarak test ediliyor, hepsi geçiyor.
 ```
 
 **Sprint 5 çıktısı:** Tam senaryo demosu. **Projenin can alıcı noktası.**
+
+### Madde 5 sonucu — Oracle vs algı mesafe karşılaştırması (24 Ağustos 2026)
+
+**Metodoloji:** Nav2 KULLANILMADI — robot her raf için `gz service set_pose`
+ile doğrudan WORLD-frame standart tarama pozuna (`RAF_YARI_DERINLIK=0.4` +
+`KORIDOR_PAYI=1.6`) teleport edildi (Sprint 2E'nin 9-raf testiyle aynı
+yöntem — envanter.json WORLD-frame olduğu için bu, §12 KOK SEBEP'teki
+world/map karışıklığından kaçınmanın tek yolu). **Oracle mesafe:** bu
+bilinen pozdan rafın ön yüzüne geometrik hesap (ölçüm değil). **Algı
+mesafe:** `/scan` ön ±60° tek nokta minimum (5 okumanın ortalaması) —
+**gerçek bir çizgi uydurma (line fitting) DEĞİL**, `kutu_tespit.py` ve
+kardeşlerinin kullandığı aynı x=mesafe düzlem varsayımının (§12) bağımsız
+bir kopyası; rapor bunu abartmıyor.
+
+| Raf | Oracle (m) | Algı (m) | Fark | Fark % |
+|---|---|---|---|---|
+| A1 | 1.600 | 1.651 | +0.051 | +3.2% |
+| A2 | 1.600 | 1.650 | +0.050 | +3.1% |
+| A3 | 1.600 | 1.648 | +0.048 | +3.0% |
+| B1 | 1.600 | 1.647 | +0.047 | +3.0% |
+| B2 | 1.600 | 1.651 | +0.051 | +3.2% |
+| B3 | 1.600 | 1.648 | +0.048 | +3.0% |
+| C1 | 1.600 | 1.650 | +0.050 | +3.1% |
+| C2 | 1.600 | 1.649 | +0.049 | +3.1% |
+| C3 | 1.600 | 1.652 | +0.052 | +3.2% |
+
+**Yorum:** LIDAR-minimum, standart 1.6 m tarama durağında gerçek mesafeyi
+tutarlı biçimde **+%3.0–%3.2 (4.7–5.2 cm) fazla tahmin ediyor** — 9 rafın
+hepsinde, yön (kuzey/güney) fark etmeksizin aynı dar aralıkta. Bu
+tutarlılık, geometri hesabının (yön işareti hatası olsaydı kuzey/güney
+raflar farklı sonuç verirdi) doğru olduğunu dolaylı olarak destekliyor.
+**"Algının maliyeti" sorusuna (bkz. §4.6) ilk nicel cevap: bu senaryoda
+~5 cm / %3 civarında** — ama bu sayı SADECE robot rafa tam kare durduğunda
+ve önünde başka bir engel olmadığında geçerli; gerçek bir çizgi uydurma
+olmadığı için yamuk duruş veya yandaki bir direk/kutu bu hatayı çok daha
+büyütebilir (bkz. yukarıdaki BİLİNEN SINIR notu).
 
 ## Sprint 6 — Ölçüm, cilalama, sunum ☐
 
