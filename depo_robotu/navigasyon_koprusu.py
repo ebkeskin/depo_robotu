@@ -63,6 +63,17 @@ SS12 KOK SEBEP'te iki kez yasanan world/map karisikligi hatasi
 tekrarlanir. Raf ici sapma (kat/yanal_konum, <=1.4m) raflar-arasi
 mesafenin (metrelerce) yaninda ihmal edilebilir, bu yuzden bu yaklasim
 yeterince dogru VE guvenli.
+
+IPTAL/DUR (Madde 6): "dur"/"iptal" gibi bir ifade, Madde 5'teki secim
+komutlariyla AYNI SEBEPLE (kapali kume, gecikme kabul edilemez) regex
+ile llm_servis'e HIC gidilmeden taninir -- _komut_geldi'nin EN BASINDA
+kontrol edilir (secim/en_yakin/adres akislarinin hepsinden once), boylece
+bekleyen bir belirsizlik/secim de temizlenmis olur. Hangi surecin iptal
+edilecegine karar veren mantik (_iptal_eylemini_belirle) TF/subprocess/
+action-client gibi gercek ROS nesnelerinden bagimsiz SAF bir fonksiyon --
+gercek iptali yapan _iptali_uygula'dan ayrildi (bkz. Madde 3'teki
+_en_yakin_eslesmeyi_sec/_en_yakina_git ayrimiyla ayni desen), ROS'suz
+izole test edilebilsin diye.
 """
 
 import json
@@ -119,6 +130,9 @@ class NavigasyonKoprusu(Node):
         # Madde 5: llm_servis'in belirsiz:true donerken verdigi eslesme
         # listesi, bir sonraki "ilkini/ikincisini... sec" komutu icin.
         self._son_belirsiz_eslesmeler = None
+        # Madde 6: devam eden navigasyonun goal_handle'i -- iptal icin
+        # cancel_goal_async() burada cagirilir. None = navigasyon yok.
+        self._son_goal_handle = None
 
         # Madde 3: "en yakini bul" icin robotun su anki map-frame pozu.
         self._tf_buffer = Buffer()
@@ -145,6 +159,12 @@ class NavigasyonKoprusu(Node):
     def _komut_geldi(self, mesaj: String) -> None:
         metin = mesaj.data
         self.get_logger().info(f'Komut alindi: {metin!r}')
+
+        # Madde 6: iptal her seyden once kontrol edilir -- llm_servis'e
+        # gitmeden aninda calismali, bekleyen bir belirsizligi de temizler.
+        if self._iptal_ifadesi_mi(metin):
+            self._iptali_uygula()
+            return
 
         # Madde 5: bekleyen bir belirsizlik varsa ve bu komut bir sira
         # ifadesiyse, llm_servis'e HIC gitmeden burada cozulur.
@@ -318,6 +338,56 @@ class NavigasyonKoprusu(Node):
         self._son_hedef_katlar = None
         self._hedefe_git(self.tarama_pozisyonlari[raf])
 
+    @staticmethod
+    def _iptal_ifadesi_mi(metin: str) -> bool:
+        """Madde 6: saf, ROS'suz string kontrolu. \b sinir kontrolu
+        SART -- yoksa "duracak", "durum" gibi kelimeler icindeki "dur"
+        yanlislikla eslesir."""
+        m = metin.lower()
+        return bool(re.search(r'\b(dur|durdur|iptal)\b', m))
+
+    @staticmethod
+    def _iptal_eylemini_belirle(navigasyon_suruyor: bool, tarama_suruyor: bool) -> str:
+        """Madde 6: hangi surecin iptal edilecegine karar veren SAF
+        mantik -- gercek iptal islemini (cancel_goal_async/terminate)
+        YAPMAZ, sadece 'ne yapilmali' karar verir (bkz. _iptali_uygula).
+        ROS'suz izole test edilebilsin diye TF/subprocess/action-client
+        durumundan (bool bayraklara indirgenmis olarak) ayrildi.
+
+        Not: mevcut mimaride (bkz. _navigasyon_tamamlandi) tarama SADECE
+        navigasyon basarıyla bittikten SONRA baslar, yani ikisi ayni anda
+        surmez -- ama 'ikisi' durumu yine de savunmaci olarak ele alinir.
+        """
+        if navigasyon_suruyor and tarama_suruyor:
+            return 'ikisi'
+        if navigasyon_suruyor:
+            return 'navigasyon'
+        if tarama_suruyor:
+            return 'tarama'
+        return 'hicbiri'
+
+    def _iptali_uygula(self) -> None:
+        navigasyon_suruyor = self._son_goal_handle is not None
+        tarama_suruyor = self._tarama_proc is not None and self._tarama_proc.poll() is None
+        eylem = self._iptal_eylemini_belirle(navigasyon_suruyor, tarama_suruyor)
+
+        # Iptal, bekleyen bir belirsizligi/secimi de gecersiz kilar.
+        self._son_belirsiz_eslesmeler = None
+
+        if eylem in ('navigasyon', 'ikisi'):
+            self.get_logger().info('Iptal: devam eden navigasyon durduruluyor.')
+            self._son_goal_handle.cancel_goal_async()
+            self._son_goal_handle = None
+        if eylem in ('tarama', 'ikisi'):
+            self.get_logger().info(
+                f"Iptal: '{self._beklenen_tarama_raf}' taramasi durduruluyor.")
+            self._tarama_proc.terminate()
+            self._tarama_proc = None
+            self._beklenen_tarama_raf = None
+        if eylem == 'hicbiri':
+            self.get_logger().info(
+                'Iptal komutu alindi ama devam eden bir navigasyon/tarama yok.')
+
     def _hedefe_git(self, pozisyon: dict) -> None:
         goal = PoseStamped()
         goal.header.frame_id = 'map'
@@ -339,6 +409,8 @@ class NavigasyonKoprusu(Node):
             self.get_logger().error('Hedef Nav2 tarafindan reddedildi.')
             return
 
+        # Madde 6: iptal edilebilmesi icin saklaniyor.
+        self._son_goal_handle = goal_handle
         sonuc_future = goal_handle.get_result_async()
         sonuc_future.add_done_callback(self._navigasyon_tamamlandi)
 
@@ -347,6 +419,9 @@ class NavigasyonKoprusu(Node):
         basarili = durum == GoalStatus.STATUS_SUCCEEDED
         self.get_logger().info(
             f"Navigasyon sonucu: {'BASARILI' if basarili else 'BASARISIZ'} (status={durum})")
+        # Madde 6: navigasyon (basarili/basarisiz/iptal, farketmez) bitti --
+        # artik iptal edilecek bir sey yok.
+        self._son_goal_handle = None
 
         # Madde 1: eylem=='git' ise SADECE navigasyon isteniyor demektir --
         # kamera donmez, tarama tetiklenmez. Sadece eylem=='tara' tarama
