@@ -87,6 +87,12 @@ class Sorgu(BaseModel):
     # 2. katini tara") o katlarin listesi; None = uc kati da tara.
     katlar: Optional[list[int]] = None
     filtre: Optional[Filtre] = None
+    # Madde 3: sadece tip=arama icin anlamli. "En yakin kirmizi kutuyu
+    # bul" gibi komutlarda True -- birden fazla eslesme varsa hangisine
+    # gidilecegini LLM degil, navigasyon_koprusu.py (robotun /odom veya
+    # TF'den bildigi mevcut konumuyla) secer. Koordinat hesabi burada
+    # YAPILMAZ (tasarim ilkesi, bkz. modul docstring'i).
+    en_yakin: bool = False
 
     @field_validator("raf")
     @classmethod

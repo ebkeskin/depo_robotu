@@ -109,6 +109,39 @@ def test_arama_raf_filtresi_eslesir(tmp_path):
     print("test_arama_raf_filtresi_eslesir: OK")
 
 
+def test_arama_en_yakin_bayragi(tmp_path):
+    # Madde 3: en_yakin=true sema uzerinden dogru tasiniyor mu -- mesafe
+    # hesabi/navigasyon navigasyon_koprusu.py'nin isi, burada sadece
+    # sorgu.en_yakin alaninin dogru parse edildigi dogrulaniyor.
+    envanter_yolu = _sahte_envanter_yaz(tmp_path)
+    with patch.object(
+        komut_cozumleyici, "llm_cagir",
+        _llm_sahte(
+            '{"tip":"arama","raf":null,"kat":null,'
+            '"filtre":{"renk":"kirmizi","boyut":null,"raf":null},"en_yakin":true}'
+        ),
+    ):
+        sonuc = komut_cozumleyici.komut_coz("en yakin kirmizi kutuyu bul", envanter_yolu=envanter_yolu)
+    assert sonuc.basarili
+    assert sonuc.belirsiz  # ORNEK_ENVANTER'da 2 kirmizi kutu var
+    assert sonuc.sorgu.en_yakin is True
+    print("test_arama_en_yakin_bayragi: OK")
+
+
+def test_arama_en_yakin_varsayilan_false(tmp_path):
+    # en_yakin alani hic gelmezse (LLM eski/eksik JSON donerse) varsayilan
+    # False olmali, sorgu yine de basarili sayilmali.
+    envanter_yolu = _sahte_envanter_yaz(tmp_path)
+    with patch.object(
+        komut_cozumleyici, "llm_cagir",
+        _llm_sahte('{"tip":"arama","raf":null,"kat":null,"filtre":{"renk":"yesil","boyut":null}}'),
+    ):
+        sonuc = komut_cozumleyici.komut_coz("yesil kutuyu bul", envanter_yolu=envanter_yolu)
+    assert sonuc.basarili
+    assert sonuc.sorgu.en_yakin is False
+    print("test_arama_en_yakin_varsayilan_false: OK")
+
+
 def test_arama_tek_eslesme(tmp_path):
     envanter_yolu = _sahte_envanter_yaz(tmp_path)
     with patch.object(
@@ -213,6 +246,8 @@ if __name__ == "__main__":
         test_arama_belirsiz_coklu_eslesme(tmp_path)
         test_arama_raf_filtresi_daraltir(tmp_path)
         test_arama_raf_filtresi_eslesir(tmp_path)
+        test_arama_en_yakin_bayragi(tmp_path)
+        test_arama_en_yakin_varsayilan_false(tmp_path)
         test_sayim_sorgusu(tmp_path)
         test_arama_sifir_eslesme(tmp_path)
         test_gecersiz_raf_reddedilir(tmp_path)

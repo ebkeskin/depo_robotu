@@ -49,9 +49,24 @@ bir kume (sirali sayilar + "ilk"/"son"), gercek bir dogal dil belirsizligi
 tasimiyor. LLM'e gitmek hem gecikme (1-3s) hem API bagimliligi ekler --
 ozellikle "dur"/"iptal" gibi ANINDA calismasi gereken komutlarla (Madde 6)
 ayni ailede oldugu icin bu tutarlilik tercih edildi (kullanicinin onayiyla).
+
+EN YAKINI BUL (Madde 3): sorgu.en_yakin=true ve birden fazla eslesme
+varsa, robotun SU ANKI map-frame pozu TF'den (map -> base_footprint)
+okunur ve her eslesmeye en_yakin_eslesmeyi_sec ile mesafe hesaplanir.
+
+MIMARI KARAR (mesafe neye gore hesaplanir): eslesmenin KENDI konumuna
+(envanter.json'daki dunya/world-frame 'konum') DEGIL, eslesmenin
+RAFININ tarama_pozisyonlari.json'daki (Nav2/AMCL icin zaten olculmus,
+map-frame) pozuna gore hesaplanir. Sebep: envanter.json world-frame,
+TF ise map-frame donuyor -- bu ikisi ayni sayilirsa PROJE_DOSYASI.md
+SS12 KOK SEBEP'te iki kez yasanan world/map karisikligi hatasi
+tekrarlanir. Raf ici sapma (kat/yanal_konum, <=1.4m) raflar-arasi
+mesafenin (metrelerce) yaninda ihmal edilebilir, bu yuzden bu yaklasim
+yeterince dogru VE guvenli.
 """
 
 import json
+import math
 import re
 import subprocess
 from pathlib import Path
@@ -65,6 +80,7 @@ from nav2_msgs.action import NavigateToPose
 from rclpy.action import ActionClient
 from rclpy.node import Node
 from std_msgs.msg import String
+from tf2_ros import Buffer, TransformListener
 
 
 class NavigasyonKoprusu(Node):
@@ -103,6 +119,10 @@ class NavigasyonKoprusu(Node):
         # Madde 5: llm_servis'in belirsiz:true donerken verdigi eslesme
         # listesi, bir sonraki "ilkini/ikincisini... sec" komutu icin.
         self._son_belirsiz_eslesmeler = None
+
+        # Madde 3: "en yakini bul" icin robotun su anki map-frame pozu.
+        self._tf_buffer = Buffer()
+        self._tf_dinleyici = TransformListener(self._tf_buffer, self)
 
         self.komut_abone = self.create_subscription(
             String, '/komut', self._komut_geldi, 10)
@@ -147,6 +167,16 @@ class NavigasyonKoprusu(Node):
             self.get_logger().error(f"Sorgu cozulemedi: {sonuc.get('hata')}")
             return
 
+        sorgu = sonuc.get('sorgu') or {}
+
+        # Madde 3: "en yakini bul" -- belirsiz olsa da olmasa da (tek
+        # eslesme icin de gecerli), eslesmeler arasindan robota en yakin
+        # olani secip DOGRUDAN navigasyon baslatir. Bu yuzden genel
+        # belirsizlik-bekletme akisindan ONCE kontrol ediliyor.
+        if sorgu.get('en_yakin') and sonuc.get('eslesmeler'):
+            self._en_yakina_git(sonuc.get('eslesmeler'))
+            return
+
         if sonuc.get('belirsiz'):
             self._son_belirsiz_eslesmeler = sonuc.get('eslesmeler')
             self.get_logger().info(
@@ -155,7 +185,6 @@ class NavigasyonKoprusu(Node):
                 "gibi bir komutla secim yapilabilir.")
             return
 
-        sorgu = sonuc.get('sorgu') or {}
         if sorgu.get('tip') != 'adres':
             self.get_logger().info(
                 f"'{sorgu.get('tip')}' tipi navigasyon gerektirmiyor, sonuc: {sonuc}")
@@ -225,6 +254,64 @@ class NavigasyonKoprusu(Node):
         # Madde 5: secim SADECE o kutuya goturur, tarama yapmaz -- kutunun
         # zaten hangi rafta/katta oldugu biliniyor (ground truth aramasindan
         # geldi), tekrar taramaya gerek yok. Bkz. Madde 1 eylem semantigi.
+        self._son_hedef_raf = raf
+        self._son_hedef_kat = secilen.get('kat')
+        self._son_hedef_eylem = 'git'
+        self._son_hedef_katlar = None
+        self._hedefe_git(self.tarama_pozisyonlari[raf])
+
+    @staticmethod
+    def _en_yakin_eslesmeyi_sec(robot_x: float, robot_y: float,
+                                 eslesmeler: list, tarama_pozisyonlari: dict):
+        """Madde 3: TF/ROS'tan tamamen bagimsiz, saf fonksiyon -- ROS'suz
+        izole birim testle dogrulanabilsin diye TF okumasindan ayrildi
+        (bkz. _en_yakina_git). robot_x/robot_y map-frame'de, her
+        eslesmenin mesafesi KENDI konumuna degil RAFININ tarama_pozisyonlari
+        pozuna gore hesaplanir (bkz. modul docstring'i, MIMARI KARAR).
+
+        Returns:
+            (secilen_eslesme, mesafe_m) -- gecerli raf konumu bulunamazsa
+            (None, None).
+        """
+        en_yakin = None
+        en_yakin_mesafe = None
+        for e in eslesmeler:
+            poz = tarama_pozisyonlari.get(e.get('raf'))
+            if poz is None:
+                continue
+            mesafe = math.hypot(poz['x'] - robot_x, poz['y'] - robot_y)
+            if en_yakin_mesafe is None or mesafe < en_yakin_mesafe:
+                en_yakin_mesafe = mesafe
+                en_yakin = e
+        return en_yakin, en_yakin_mesafe
+
+    def _en_yakina_git(self, eslesmeler: list) -> None:
+        try:
+            donusum = self._tf_buffer.lookup_transform(
+                'map', 'base_footprint', rclpy.time.Time())
+        except Exception as e:
+            self.get_logger().error(
+                f"Robot konumu (map->base_footprint TF) okunamadi, "
+                f"'en yakin' cozulemedi: {e}")
+            return
+
+        t = donusum.transform.translation
+        secilen, mesafe = self._en_yakin_eslesmeyi_sec(
+            t.x, t.y, eslesmeler, self.tarama_pozisyonlari)
+        if secilen is None:
+            self.get_logger().error(
+                "'En yakin' icin gecerli raf konumu bulunamadi "
+                "(eslesmelerin raflari tarama_pozisyonlari.json'da yok).")
+            return
+
+        raf = secilen.get('raf')
+        self.get_logger().info(
+            f"En yakin: {secilen.get('renk')} {secilen.get('boyut')} kutu, "
+            f"raf={raf} (~{mesafe:.2f} m). Navigasyon baslatiliyor "
+            "(eylem=git, tarama yok).")
+        # Madde 3: secim gibi (Madde 5) SADECE o kutuya goturur, tarama
+        # yapmaz -- kutunun rafi/kati zaten ground truth aramasindan
+        # biliniyor.
         self._son_hedef_raf = raf
         self._son_hedef_kat = secilen.get('kat')
         self._son_hedef_eylem = 'git'

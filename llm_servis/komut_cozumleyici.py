@@ -41,7 +41,9 @@ JSON semasi (alanlar arasinda TAM OLARAK bu adlari kullan):
              -- null, "her 3 kati da tara" demektir),
   "filtre": {"renk": "...", "boyut": "...", "raf": "..."} (tip=arama
              veya sayim ise, yoksa null. renk, boyut, raf'tan en az biri
-             dolu olmali -- ucu de bos olamaz.)
+             dolu olmali -- ucu de bos olamaz.),
+  "en_yakin": true | false (SADECE tip=arama ise anlamli, varsayilan
+              false. Komutta "en yakin" gibi bir ifade varsa true.)
 }
 
 eylem ayrimi (SADECE tip=adres icin gecerli, cok onemli):
@@ -65,6 +67,7 @@ Ornekler:
 "B2'deki kirmizi kutuyu bul" -> {"tip":"arama","raf":null,"kat":null,"filtre":{"renk":"kirmizi","boyut":null,"raf":"B2"}}
 "Kac yesil kutu var?" -> {"tip":"sayim","raf":null,"kat":null,"filtre":{"renk":"yesil","boyut":null,"raf":null}}
 "Buyuk mavi kutu neredeydi?" -> {"tip":"arama","raf":null,"kat":null,"filtre":{"renk":"mavi","boyut":"buyuk","raf":null}}
+"En yakin kirmizi kutuyu bul" -> {"tip":"arama","raf":null,"kat":null,"filtre":{"renk":"kirmizi","boyut":null,"raf":null},"en_yakin":true}
 
 ONEMLI: Sen sadece NIYETI cikar (renk/boyut/raf/eylem/adres). Kac kutu
 bulundugunu veya koordinat HESAPLAMA -- bu senin isin degil, sonradan
