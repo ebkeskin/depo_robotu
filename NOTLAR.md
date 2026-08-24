@@ -808,6 +808,59 @@ araştırılmadı, düşük öncelikli.
 
 ---
 
+## SORUN 18 — Nav2 planlayıcısı spawn noktası civarında sistematik olarak başarısız oluyor (24 Ağustos 2026, 4+ tekrar)
+
+**Belirti**
+`GridBased: failed to create plan` / `[compute_path_to_pose] Aborting handle`
+— robot HANGİ hedefe gönderilirse gönderilsin (raf farketmeksizin), en net
+belirti: `nav2_costmap_2d: Robot is out of bounds of the costmap!` ve
+`global_costmap: Sensor origin at (X, Y) is out of map bounds (-5.91, -1.21)
+to (6.02, 10.92)`. Robotun spawn noktası (dünya-çerçevesi (0, -5)) haritanın
+kayıtlı y-sınırının (-1.21) DIŞINDA kalıyor — robot spawn'dan itibaren bir
+süre (kuzeye, y>-1.21'e doğru ilerleyene kadar) costmap'in "görüş alanı"
+dışında sayılıyor.
+
+**Görüldüğü oturumlar (bu konuşma içinde, 24 Ağustos 2026)**
+- Sprint 5 ek özellik Madde 1/3 test oturumu — AMCL, `/initialpose` doğru
+  verilmesine rağmen yanlış bir map-frame pozuna (simetrik-grid riski)
+  kilitlendi; kilitlenmeden önce aynı "out of map bounds" uyarıları görüldü.
+- Sprint 5 ek özellik Madde 6 (iptal/dur) test oturumu — C2/B1/A2 hedeflerinin
+  hepsi `status=6` (ABORTED) ile başarısız oldu, robot spawn'dan hiç ayrılamadı.
+- Sprint 5 roadmap Madde 4 (hedefe varınca görsel doğrulama) test oturumu —
+  aynı desen tekrarlandı, bu kez log'da `Robot is out of bounds of the
+  costmap!` satırı AÇIKÇA yakalandı (yukarıdaki Belirti).
+- (Sprint 5 roadmap Madde 3, "Envanterden sorgu" test oturumunda Nav2/Gazebo
+  hiç başlatılmadığı için bu oturumda görülmedi — ilgisiz.)
+
+**Durum — artık "ara sıra" değil, SİSTEMATİK bir kalıp**
+Aynı belirti (spawn noktası civarında costmap/planlama başarısızlığı) 4'ten
+fazla kez, farklı hedeflerde, farklı test oturumlarında tekrar etti. Robotu
+elle `cmd_vel` ile kıpırdatmak bazen (her zaman değil) sorunu geçici olarak
+çözdü, bu da spawn-costmap etkileşimiyle ilgili bir şey olduğunu destekliyor
+ama kesin kök sebep BULUNMADI. Bu artık rastgele bir flakiness değil,
+**yeniden üretilebilir bir kalıp** — canlı Nav2 doğrulaması gerektiren her
+yeni özellik bu yüzden tekrar tekrar engelleniyor. **Ayrı, odaklanmış bir
+araştırma oturumu gerektirebilir; bu artık öncelik kazanmalı.** (Spekülatif
+olası yönler — DOĞRULANMADI, sadece araştırma başlangıcı için not: harita
+dosyasının (`depo_haritasi.yaml`/`.pgm`) spawn koridorunu kapsayacak kadar
+büyük kaydedilmemiş olması, ya da `nav2_params_depo.yaml`'daki costmap
+`origin`/boyut ayarlarının haritayla tutarsız olması.)
+
+**Ayrı not: navigasyon_koprusu çift-süreç çakışması (ÇÖZÜLDÜ, bu SORUN'dan bağımsız)**
+Madde 4 test oturumunda, `navigasyon_koprusu`'yu yeniden başlatırken
+`kill -TERM <ros2-run-wrapper-pid>` komutu SADECE `ros2 run` sarmalayıcı
+script'ini öldürdü, asıl Python süreci (`.../lib/depo_robotu/navigasyon_koprusu`)
+yetim kalıp arka planda ÇALIŞMAYA DEVAM ETTİ — aynı anda iki `navigasyon_koprusu`
+düğümü `/komut`'a abone oldu, biri eski (boş) `robot_envanteri.json` ile biri
+yeni (tohumlanmış) veriyle çalıştı, komutlar hangisine gittiği belirsiz şekilde
+dağıldı. Düzeltme: süreç kapatılırken `ros2 run` sarmalayıcısının PID'i değil,
+gerçek Python sürecinin PID'i (`pgrep`'te `lib/depo_robotu/...` yolunu
+gösteren satır) hedeflenmeli. SIGTERM işleyicisinin kendisi (bkz. yukarıdaki
+"Yetim tarama_kontrol süreci" notu) doğru çalıştı — bu, sadece hangi PID'in
+sinyallendiği ile ilgili bir işletim hatasıydı, koddaki bir kusur değil.
+
+---
+
 ## Sıradaki iş: Hareketli (tilt) kamera
 
 **Neden:** Sabit kamerayla dar koridorda üç kat birden görülemiyor (bkz. KARAR 1).
