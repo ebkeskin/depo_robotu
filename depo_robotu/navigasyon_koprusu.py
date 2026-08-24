@@ -89,10 +89,28 @@ MVP KAPSAM SINIRI (bilincli, kullanicinin onayiyla): bu SADECE acikca
 tara edilen raflardan ogrenir -- robot "git" ile bir yerden GECERKEN
 gordugu kutulari KAYDETMEZ (idea (a)'nin tam hali bunu da yapardi, ama
 bu, kutu_tespit.py'nin ham /tespitler'ine surekli abone olup TF ile
-dunya-cercevesi konum hesaplamayi gerektirir -- Madde 3'teki gibi yeni
-bir world/map donusumu riski tasiyan, ayri ve buyuk bir is). Ground truth
-aramasindan (tip:arama, envanter.json'a karsi) da KASITLI olarak AYRI:
-biri "biliniyor" der, digeri "gordum" der, karistirilmamali.
+dunya-cercevesi konum hesaplamayi gerektirir -- "en yakini bul"daki gibi
+yeni bir world/map donusumu riski tasiyan, ayri ve buyuk bir is). Ground
+truth aramasindan (tip:arama, envanter.json'a karsi) da KASITLI olarak
+AYRI: biri "biliniyor" der, digeri "gordum" der, karistirilmamali.
+
+ENVANTERDEN SORGU (PROJE_DOSYASI.md Sprint 5 RESMI roadmap'inin 3.
+maddesi -- NOT: yukaridaki "Madde 3/4/5/6" etiketleri 24 Agustos 2026'da
+eklenen AYRI, ek bir ozellik katmanina ait, bu ikisini karistirma):
+yukaridaki "ne ogrendin" ailesi (_kendi_envanteri_ifadesi_mi) genisletildi
+-- ayni ifadede bir renk/boyut da geciyorsa ("gordugun kirmizi kutu
+nerede", "kendi envanterinde mavi var mi") robot_envanteri.json'a karsi
+FILTRELI bir arama yapilir (_kendi_envanterini_isle). Filtre yoksa
+("duz ne ogrendin") eskisi gibi tam ozet raporlanir -- davranista
+GERIYE DONUK degisiklik YOK, sadece dallanma noktasi genisledi.
+
+Renk/boyut cikarimi (_renk_boyut_ayikla) de kapali kume (5 renk x 3 boyut)
+oldugu icin AYNI regex-yerel-tanima tercihiyle (LLM'e gitmeden) yapiliyor.
+Coklu eslesme durumunda Madde 5'in _son_belirsiz_eslesmeler/"ilkini sec"
+altyapisi AYNEN yeniden kullaniliyor -- _robot_envanterinde_ara'nin donduğu
+liste zaten uyumlu 'raf'/'kat' anahtarlari tasiyor, ekstra kod gerekmedi.
+Ground-truth tip:arama ile PARİTE: tek eslesmede bile navigasyon
+BASLATILMAZ, sadece raporlanir (mevcut tip:arama davranisiyla tutarli).
 """
 
 import datetime
@@ -134,6 +152,23 @@ class NavigasyonKoprusu(Node):
         'dokuzuncusunu': 8, 'dokuzuncuyu': 8,
         'onuncusunu': 9, 'onuncuyu': 9,
         'sonuncusunu': -1, 'sonuncuyu': -1, 'sonunu': -1, 'sonu': -1,
+    }
+
+    # Envanterden sorgu: sorgu_semasi.py'deki Renk/Boyut enum'larinin
+    # AYNISI -- llm_servis ayri bir Python ortaminda oldugu icin import
+    # edilemiyor, RAF_UZUNLUK gibi (bkz. tarama_kontrol.py) bilerek
+    # kopyalandi. Deger: metinde gecebilecek kelime -> canonik JSON degeri.
+    RENK_KELIMELERI = {
+        'kirmizi': 'kirmizi', 'kırmızı': 'kirmizi',
+        'yesil': 'yesil', 'yeşil': 'yesil',
+        'mavi': 'mavi',
+        'sari': 'sari', 'sarı': 'sari',
+        'karton': 'karton',
+    }
+    BOYUT_KELIMELERI = {
+        'buyuk': 'buyuk', 'büyük': 'buyuk',
+        'orta': 'orta',
+        'kucuk': 'kucuk', 'küçük': 'kucuk',
     }
 
     def __init__(self):
@@ -191,12 +226,14 @@ class NavigasyonKoprusu(Node):
             self._iptali_uygula()
             return
 
-        # Madde 4: "ne ogrendin" gibi bir soru -- llm_servis'e gitmeden,
-        # SADECE acikca tarama_kontrol calistirilmis raflardan biriken
-        # robot_envanteri.json'u ozetleyip raporlar. Ground truth
-        # aramasindan (tip:arama) KASITLI ayri (bkz. modul docstring'i).
-        if self._ogrendin_ifadesi_mi(metin):
-            self._ogrendiklerini_raporla()
+        # Madde 4 + Envanterden sorgu: "ne ogrendin" / "gordugun kirmizi
+        # kutu nerede" gibi kendi-deneyim sorulari -- llm_servis'e
+        # gitmeden, SADECE acikca tarama_kontrol calistirilmis raflardan
+        # biriken robot_envanteri.json'a karsi (filtresiz -> tam ozet,
+        # filtreli -> arama) cevap verir. Ground truth aramasindan
+        # (tip:arama) KASITLI ayri (bkz. modul docstring'i).
+        if self._kendi_envanteri_ifadesi_mi(metin):
+            self._kendi_envanterini_isle(metin)
             return
 
         # Madde 5: bekleyen bir belirsizlik varsa ve bu komut bir sira
@@ -422,13 +459,110 @@ class NavigasyonKoprusu(Node):
                 'Iptal komutu alindi ama devam eden bir navigasyon/tarama yok.')
 
     @staticmethod
-    def _ogrendin_ifadesi_mi(metin: str) -> bool:
-        """Madde 4: saf, ROS'suz string kontrolu. "ne ogrendin",
-        "ogrendiklerini soyle", "envanterini goster" gibi ifadeleri tanir."""
+    def _kendi_envanteri_ifadesi_mi(metin: str) -> bool:
+        """Madde 4 + Envanterden sorgu: saf, ROS'suz string kontrolu.
+        "ne ogrendin", "ogrendiklerini soyle", "gordugun kirmizi kutu
+        nerede", "kendi envanterinde mavi var mi", "hafizanda ne var"
+        gibi robotun KENDI deneyimini (ground truth degil) soran
+        ifadeleri tanir. Eskiden _ogrendin_ifadesi_mi idi -- filtresiz
+        "ne ogrendin" davranisi AYNEN korunuyor, sadece kapsam genisledi
+        (bkz. modul docstring'i, "ENVANTERDEN SORGU")."""
         m = metin.lower()
         if 'öğren' in m or 'ogren' in m:
             return True
-        return 'envanter' in m and ('göster' in m or 'goster' in m)
+        if 'gördü' in m or 'gordu' in m:
+            return True
+        if 'hafıza' in m or 'hafiza' in m:
+            return True
+        return 'envanter' in m
+
+    @staticmethod
+    def _renk_boyut_ayikla(metin: str):
+        """Envanterden sorgu: saf, ROS'suz -- metinde gecen bilinen bir
+        renk ve/veya boyut kelimesini (varsa) canonik JSON degerine
+        cevirir. Ikisi de bulunamazsa (None, None) doner -- cagiran taraf
+        (_kendi_envanterini_isle) bu durumda filtresiz "ne ogrendin"
+        akisina duser.
+
+        BILINEN SINIR: renk/boyut kelimeleri sadece CEKIMSIZ (sifat
+        halinde, orn. "kirmizi kutu") taniniyor -- bu zaten projedeki
+        HAKIM kullanim kalibi (bkz. tum ornekler: "kirmizi kutuyu bul",
+        "buyuk mavi kutu"). Kelimenin isim gibi cekimlendigi durumlar
+        (orn. "kartondan olani") YAKALANMAZ -- tam Turkce morfolojisi
+        cozmek bu MVP'nin kapsami disi, SIRA_KELIMELERI'ndeki gibi
+        sadece dogal/sik gecen formlar elle listeleniyor.
+        """
+        m = metin.lower()
+        renk = None
+        for kelime, kanonik in NavigasyonKoprusu.RENK_KELIMELERI.items():
+            if re.search(r'\b' + kelime + r'\b', m):
+                renk = kanonik
+                break
+        boyut = None
+        for kelime, kanonik in NavigasyonKoprusu.BOYUT_KELIMELERI.items():
+            if re.search(r'\b' + kelime + r'\b', m):
+                boyut = kanonik
+                break
+        return renk, boyut
+
+    @staticmethod
+    def _robot_envanterinde_ara(envanter: dict, renk: str = None, boyut: str = None) -> list:
+        """Envanterden sorgu: robot_envanteri.json (dict) icinde renk/boyut
+        filtresine uyan tespitleri, raf/kat bilgisiyle zenginlestirilmis
+        DUZ bir liste olarak doner -- dosya/ROS erisiminden bagimsiz saf
+        fonksiyon. Donen ogeler Madde 5'in _son_belirsiz_eslesmeler/
+        _secimi_uygula altyapisiyla DOGRUDAN uyumlu (ayni 'raf'/'kat'
+        anahtarlarini tasir) -- coklu eslesmede "ilkini sec" ek kod
+        gerekmeden calisir.
+        """
+        sonuc = []
+        for raf, veri in envanter.get('raflar', {}).items():
+            for kat_str, tespitler in veri.get('tespitler', {}).items():
+                for t in tespitler:
+                    if renk is not None and t.get('renk') != renk:
+                        continue
+                    if boyut is not None and t.get('boyut') != boyut:
+                        continue
+                    sonuc.append({**t, 'raf': raf, 'kat': int(kat_str)})
+        return sonuc
+
+    def _kendi_envanterini_isle(self, metin: str) -> None:
+        """Envanterden sorgu: _kendi_envanteri_ifadesi_mi tetiklendiginde
+        cagrilir. Mesajda ayrica bir renk/boyut GECIYORSA filtrelenmis
+        arama yapar; gecmiyorsa (duz "ne ogrendin") Madde 4'un tam ozetine
+        duser -- davranista geriye donuk degisiklik yok.
+        """
+        renk, boyut = self._renk_boyut_ayikla(metin)
+        if renk is None and boyut is None:
+            self._ogrendiklerini_raporla()
+            return
+
+        if not self.robot_envanteri.get('raflar'):
+            self.get_logger().info(
+                'Kendi gorduklerim: Henuz hicbir raf taramadim, bu yuzden bilmiyorum.')
+            return
+
+        eslesmeler = self._robot_envanterinde_ara(self.robot_envanteri, renk, boyut)
+        if not eslesmeler:
+            nitelik = ' '.join(x for x in (renk, boyut) if x)
+            self.get_logger().info(
+                f'Kendi gorduklerim: taradigim raflarda {nitelik} bir kutu gormedim.')
+            return
+
+        if len(eslesmeler) == 1:
+            e = eslesmeler[0]
+            self.get_logger().info(
+                f"Kendi gorduklerimde: {e.get('renk')} {e.get('boyut')} kutu, "
+                f"raf={e.get('raf')}, kat={e.get('kat')}.")
+            return
+
+        # Coklu eslesme: Madde 5 ile AYNI belirsizlik-bekletme mekanizmasi
+        # -- "ilkini/ikincisini/sonuncusunu sec" burada da calisir.
+        self._son_belirsiz_eslesmeler = eslesmeler
+        self.get_logger().info(
+            f'Kendi gorduklerimde {len(eslesmeler)} eslesme var, navigasyon '
+            'baslatilmadi. "ilkini/ikincisini/sonuncusunu sec" gibi bir '
+            'komutla secim yapilabilir.')
 
     @staticmethod
     def _ogrenilen_ozet_metni(envanter: dict) -> str:
