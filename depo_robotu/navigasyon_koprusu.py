@@ -36,9 +36,23 @@ BILINCLI SINIRLAR:
   surec cokerse veya /tarama_raporu hic gelmezse dugum sonsuza dek
   "tarama devam ediyor" sanip yeni istekleri reddeder (bkz.
   _tarama_baslat). Manuel mudahale (dugumu yeniden baslatmak) gerekir.
+
+BELIRSIZLIK TAKIBI (Madde 5): llm_servis bir arama/sayim sorgusunu
+birden fazla kutuyla eslestirirse (belirsiz:true) donen eslesmeler
+listesi burada self._son_belirsiz_eslesmeler'de saklanir. Bir sonraki
+/komut mesaji "ilkini/ikincisini/sonuncusunu sec" gibi bir SIRA ifadesi
+ICERIYORSA, llm_servis'e HIC gidilmeden (bkz. asagidaki tasarim karari)
+saklanan listeden ilgili kutu secilip navigasyona baslanir.
+
+TASARIM KARARI (secim tanima neden regex, LLM degil): bu ifadeler kapali
+bir kume (sirali sayilar + "ilk"/"son"), gercek bir dogal dil belirsizligi
+tasimiyor. LLM'e gitmek hem gecikme (1-3s) hem API bagimliligi ekler --
+ozellikle "dur"/"iptal" gibi ANINDA calismasi gereken komutlarla (Madde 6)
+ayni ailede oldugu icin bu tutarlilik tercih edildi (kullanicinin onayiyla).
 """
 
 import json
+import re
 import subprocess
 from pathlib import Path
 
@@ -58,6 +72,22 @@ class NavigasyonKoprusu(Node):
     LLM_SERVIS_URL = 'http://localhost:8000/komut'
     HTTP_ZAMAN_ASIMI = 30.0  # s - Gemini cevabi bazen birkac saniye surebiliyor
 
+    # Madde 5: sira ifadesi -> saklanan eslesmeler listesindeki indeks.
+    # -1 = sonuncusu (listenin sonundan sayilir, bkz. _secim_indeksini_coz).
+    SIRA_KELIMELERI = {
+        'ilkini': 0, 'ilki': 0, 'birincisini': 0, 'birinciyi': 0, 'birini': 0,
+        'ikincisini': 1, 'ikinciyi': 1,
+        'ucuncusunu': 2, 'üçüncüsünü': 2, 'ucuncuyu': 2, 'üçüncüyü': 2,
+        'dorduncusunu': 3, 'dördüncüsünü': 3, 'dorduncuyu': 3, 'dördüncüyü': 3,
+        'besincisini': 4, 'beşincisini': 4, 'besinciyi': 4, 'beşinciyi': 4,
+        'altincisini': 5, 'altıncısını': 5, 'altinciyi': 5, 'altıncıyı': 5,
+        'yedincisini': 6, 'yedinciyi': 6,
+        'sekizincisini': 7, 'sekizinciyi': 7,
+        'dokuzuncusunu': 8, 'dokuzuncuyu': 8,
+        'onuncusunu': 9, 'onuncuyu': 9,
+        'sonuncusunu': -1, 'sonuncuyu': -1, 'sonunu': -1, 'sonu': -1,
+    }
+
     def __init__(self):
         super().__init__('navigasyon_koprusu')
 
@@ -70,6 +100,9 @@ class NavigasyonKoprusu(Node):
         self._son_hedef_katlar = None
         self._tarama_proc = None
         self._beklenen_tarama_raf = None
+        # Madde 5: llm_servis'in belirsiz:true donerken verdigi eslesme
+        # listesi, bir sonraki "ilkini/ikincisini... sec" komutu icin.
+        self._son_belirsiz_eslesmeler = None
 
         self.komut_abone = self.create_subscription(
             String, '/komut', self._komut_geldi, 10)
@@ -93,6 +126,14 @@ class NavigasyonKoprusu(Node):
         metin = mesaj.data
         self.get_logger().info(f'Komut alindi: {metin!r}')
 
+        # Madde 5: bekleyen bir belirsizlik varsa ve bu komut bir sira
+        # ifadesiyse, llm_servis'e HIC gitmeden burada cozulur.
+        if self._son_belirsiz_eslesmeler is not None:
+            indeks = self._secim_indeksini_coz(metin)
+            if indeks is not None:
+                self._secimi_uygula(indeks)
+                return
+
         try:
             yanit = requests.post(
                 self.LLM_SERVIS_URL, json={'metin': metin}, timeout=self.HTTP_ZAMAN_ASIMI)
@@ -107,9 +148,11 @@ class NavigasyonKoprusu(Node):
             return
 
         if sonuc.get('belirsiz'):
+            self._son_belirsiz_eslesmeler = sonuc.get('eslesmeler')
             self.get_logger().info(
                 f"Sorgu belirsiz: {sonuc.get('eslesme_sayisi')} eslesme bulundu, "
-                "navigasyon baslatilmadi.")
+                "navigasyon baslatilmadi. \"ilkini/ikincisini/sonuncusunu sec\" "
+                "gibi bir komutla secim yapilabilir.")
             return
 
         sorgu = sonuc.get('sorgu') or {}
@@ -133,6 +176,59 @@ class NavigasyonKoprusu(Node):
         self._son_hedef_kat = kat
         self._son_hedef_eylem = eylem
         self._son_hedef_katlar = katlar
+        self._hedefe_git(self.tarama_pozisyonlari[raf])
+
+    def _secim_indeksini_coz(self, metin: str):
+        """Madde 5: "ilkini sec", "2. yi sec" gibi bir sira ifadesini
+        self._son_belirsiz_eslesmeler icindeki 0-tabanli indekse cevirir.
+
+        Yanlis pozitifi azaltmak icin metinde "sec" koku ARANMASI SART --
+        yoksa "A2'nin 2. katini tara" gibi normal bir komuttaki "2." de
+        yanlislikla secim sanilabilirdi.
+        """
+        m = metin.lower()
+        if 'seç' not in m and 'sec' not in m:
+            return None
+        # \b sinir kontrolu SART -- yoksa "sonuncusunu" gibi bir kelime,
+        # icinde substring olarak barindirdigi "onuncusunu" (10.) ile
+        # yanlislikla eslesebilir.
+        for kelime, indeks in self.SIRA_KELIMELERI.items():
+            if re.search(r'\b' + re.escape(kelime) + r'\b', m):
+                return indeks
+        rakam = re.search(r'\b(\d+)\b', m)
+        if rakam:
+            return int(rakam.group(1)) - 1
+        return None
+
+    def _secimi_uygula(self, indeks: int) -> None:
+        eslesmeler = self._son_belirsiz_eslesmeler
+        self._son_belirsiz_eslesmeler = None
+
+        gercek_indeks = indeks if indeks >= 0 else len(eslesmeler) + indeks
+        if not eslesmeler or not (0 <= gercek_indeks < len(eslesmeler)):
+            self.get_logger().warn(
+                f"Secim indeksi gecersiz ({indeks}), {len(eslesmeler or [])} "
+                'eslesme vardi. Belirsizlik iptal edildi, yeniden arayin.')
+            return
+
+        secilen = eslesmeler[gercek_indeks]
+        raf = secilen.get('raf')
+        if raf not in self.tarama_pozisyonlari:
+            self.get_logger().error(
+                f"Secilen kutunun rafi '{raf}' tarama_pozisyonlari.json'da yok.")
+            return
+
+        self.get_logger().info(
+            f"Secim: #{gercek_indeks + 1} -> {secilen.get('renk')} "
+            f"{secilen.get('boyut')} kutu, raf={raf}, kat={secilen.get('kat')}. "
+            "Navigasyon baslatiliyor (eylem=git, tarama yok).")
+        # Madde 5: secim SADECE o kutuya goturur, tarama yapmaz -- kutunun
+        # zaten hangi rafta/katta oldugu biliniyor (ground truth aramasindan
+        # geldi), tekrar taramaya gerek yok. Bkz. Madde 1 eylem semantigi.
+        self._son_hedef_raf = raf
+        self._son_hedef_kat = secilen.get('kat')
+        self._son_hedef_eylem = 'git'
+        self._son_hedef_katlar = None
         self._hedefe_git(self.tarama_pozisyonlari[raf])
 
     def _hedefe_git(self, pozisyon: dict) -> None:
