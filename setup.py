@@ -16,6 +16,7 @@ setup(
         (os.path.join('share', package_name, 'launch'), glob('launch/*.py')),
         (os.path.join('share', package_name, 'araclar'), glob('araclar/envanter.json')),
         (os.path.join('share', package_name, 'araclar'), glob('araclar/adres_veritabani.json')),
+        (os.path.join('share', package_name, 'araclar'), glob('araclar/tarama_pozisyonlari.json')),
         (os.path.join('share', package_name, 'config'), glob('config/*.yaml')),
     ],
     install_requires=['setuptools'],
@@ -39,6 +40,7 @@ setup(
             'tarama_kontrol = depo_robotu.tarama_kontrol:main',
             'adres_dogrula = depo_robotu.adres_dogrula:main',
             'konum_yakala = depo_robotu.konum_yakala:main',
+            'navigasyon_koprusu = depo_robotu.navigasyon_koprusu:main',
         ],
     },
 )
