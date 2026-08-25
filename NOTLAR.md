@@ -808,7 +808,7 @@ araştırılmadı, düşük öncelikli.
 
 ---
 
-## SORUN 18 — Nav2 planlayıcısı spawn noktası civarında sistematik olarak başarısız oluyor (24 Ağustos 2026, 4+ tekrar)
+## SORUN 18 — Nav2 planlayıcısı spawn noktası civarında sistematik olarak başarısız oluyor (24 Ağustos 2026, 4+ tekrar; KÖK SEBEP BULUNDU 25 Ağustos 2026)
 
 **Belirti**
 `GridBased: failed to create plan` / `[compute_path_to_pose] Aborting handle`
@@ -836,15 +836,45 @@ dışında sayılıyor.
 Aynı belirti (spawn noktası civarında costmap/planlama başarısızlığı) 4'ten
 fazla kez, farklı hedeflerde, farklı test oturumlarında tekrar etti. Robotu
 elle `cmd_vel` ile kıpırdatmak bazen (her zaman değil) sorunu geçici olarak
-çözdü, bu da spawn-costmap etkileşimiyle ilgili bir şey olduğunu destekliyor
-ama kesin kök sebep BULUNMADI. Bu artık rastgele bir flakiness değil,
-**yeniden üretilebilir bir kalıp** — canlı Nav2 doğrulaması gerektiren her
-yeni özellik bu yüzden tekrar tekrar engelleniyor. **Ayrı, odaklanmış bir
-araştırma oturumu gerektirebilir; bu artık öncelik kazanmalı.** (Spekülatif
-olası yönler — DOĞRULANMADI, sadece araştırma başlangıcı için not: harita
-dosyasının (`depo_haritasi.yaml`/`.pgm`) spawn koridorunu kapsayacak kadar
-büyük kaydedilmemiş olması, ya da `nav2_params_depo.yaml`'daki costmap
-`origin`/boyut ayarlarının haritayla tutarsız olması.)
+çözdü, bu da spawn-costmap etkileşimiyle ilgili bir şey olduğunu destekliyordu.
+Bu artık rastgele bir flakiness değil, **yeniden üretilebilir bir kalıp** —
+canlı Nav2 doğrulaması gerektiren her yeni özellik bu yüzden tekrar tekrar
+engelleniyor.
+
+**KÖK SEBEP BULUNDU (25 Ağustos 2026) — harita spawn/kapı bölgesini
+kapsamıyor**
+`maps/depo_haritasi.yaml` ve `.pgm` dosyaları doğrudan incelenerek doğrulandı:
+
+- `depo_haritasi.yaml` → `origin: [-5.91, -1.21, 0]`
+- `depo_haritasi.pgm` boyutu → 239×243 piksel, `resolution: 0.05` m/piksel
+- Haritanın kapsadığı gerçek-dünya Y aralığı → **-1.21 ile 10.94 arası**
+  (`origin_y=-1.21` + `243 × 0.05 = 12.15` m yükseklik)
+- Robotun spawn noktası (`worlds/depo.sdf`'te tanımlı) → **y = -5**
+
+**Sonuç: spawn noktası, haritanın kapsadığı alanın YAKLAŞIK 3.79 METRE
+DIŞINDA** (-1.21 − (-5) = 3.79). Robot spawn olduğu anda zaten costmap'in
+"görüş alanı"nın tamamen dışında bir noktada duruyor — Nav2'nin "Robot is
+out of bounds of the costmap!" hatası bu yüzden HER seferinde, ilk andan
+itibaren tetikleniyor; bu bir kenar-durumu değil, spawn noktasının SLAM
+haritasına hiç girmemiş olmasının doğrudan sonucu.
+
+**En olası açıklama (haritanın neden eksik kaldığı):** SLAM haritalaması
+sırasında (bkz. §7 Sprint 3 madde 1) robot muhtemelen spawn/kapı bölgesine
+(güney duvarındaki giriş, y≈-5 civarı) yeterince gitmedi veya o bölgeyi
+LIDAR ile yeterince taramadı, bu yüzden `slam_toolbox` o alanı haritaya hiç
+işlemedi — harita güneyde y=-1.21'de kesiliyor.
+
+**Düzeltme ERTELENDİ (zaman kısıtı nedeniyle).** Doğru düzeltme, haritayı
+spawn/kapı bölgesini de kapsayacak şekilde **yeniden çıkarmak** (robotu bu
+kez o bölgede de gezdirerek yeniden `slam_toolbox` haritalaması yapmak) ve
+ardından adres veritabanındaki **9 rafın konumunu yeni haritaya göre yeniden
+kalibre etmek** (`konum_yakala.py` / `haritadan_adres_cikar.py`, bkz. §7
+Sprint 3 3D) — bu, Sprint 3'ün "map frame origin'i SLAM'in başladığı ana
+bağlıdır" dersiyle tutarlı, sadece haritanın kapsama alanı bu kez yetersiz
+kalmış. Bu iş Sprint 6 sunum hazırlığıyla çakıştığı için zaman kısıtı
+nedeniyle şimdilik ertelendi; kısa vadeli geçici çözüm olarak robotu manuel
+`cmd_vel` ile haritanın kapsadığı bölgeye (y>-1.21) taşıyıp oradan Nav2
+görevi başlatmak işe yarıyor ama bu kalıcı bir çözüm değil.
 
 **Ayrı not: navigasyon_koprusu çift-süreç çakışması (ÇÖZÜLDÜ, bu SORUN'dan bağımsız)**
 Madde 4 test oturumunda, `navigasyon_koprusu`'yu yeniden başlatırken
