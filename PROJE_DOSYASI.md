@@ -1,14 +1,18 @@
 # PROJE DOSYASI — Yapay Zeka Destekli Akıllı Depo Robotu Simülasyonu
 
-**Son güncelleme:** 24 Ağustos 2026
 **Durum:** Sprint 5 (Entegrasyon ve envanter) **5/5 madde kod düzeyinde
 TAMAMLANDI** — zincir kapatma, pasif envanter MVP, envanterden sorgu,
 hedefe varınca görsel doğrulama, oracle vs algı karşılaştırması. AÇIK
 KALAN ENGEL: `NOTLAR.md` SORUN 18 — Nav2 planlayıcısı spawn noktası
-civarında sistematik olarak başarısız oluyor (4+ kez tekrarlandı, kök
-sebep bulunamadı), bu yüzden Sprint 5 madde 1 ve 4'ün **uçtan uca canlı
-Nav2 doğrulaması hâlâ yapılamadı** — kod hazır ve izole testlerle
-doğrulandı, ama gerçek navigasyon başarısı gerektiren son adım eksik.
+civarında sistematik olarak başarısız oluyor (4'ten fazla kez, farklı
+oturumlarda tekrarlandı). **Kök sebep bulundu** — kayıtlı harita robotun
+spawn/kapı bölgesini kapsamıyor (harita y=-1.21…10.94 aralığını
+kapsarken spawn noktası y=-5'te, yani haritanın ~3.79 m dışında) —
+**ama düzeltme (yeniden haritalama + 9 rafın yeniden kalibrasyonu) zaman
+kısıtı nedeniyle ertelendi**, bu yüzden Sprint 5 madde 1 ve 4'ün **uçtan
+uca canlı Nav2 doğrulaması hâlâ yapılamadı** — kod hazır ve izole
+testlerle doğrulandı, ama gerçek navigasyon başarısı gerektiren son adım
+eksik.
 **Sıradaki iş Sprint 6 (ölçüm, cilalama, sunum) — ama SORUN 18, Sprint
 6'dan ÖNCE veya en azından PARALELDE öncelikli olarak ele alınmalı**
 (bkz. §7 Sprint 6 başındaki uyarı): Sprint 6'nın "görev başarı oranı"
@@ -120,7 +124,7 @@ Her katman kendi işini yapar.
 ~10 gün içinde yaptırılacak. O zamana kadar uzun süreli çalışmalarda
 `watch -n 2 sensors` ile sıcaklık izlenmeli. CPU sürekli 90 °C+ ise mola verilmeli.
 
-**Sürücü notu (güncellendi, 18 Ağustos 2026):** nouveau açık kaynak sürücü
+**Sürücü notu (güncellendi):** nouveau açık kaynak sürücü
 GPU sıcaklığını okuyamıyor (N/A) ve Nav2/RPP ile artan hesaplama yükünde
 belirgin bir performans sorununa yol açtı (RTF ~%47'ye düştü). NVIDIA'nın
 kapalı sürücüsüne (`nvidia-driver-595-open`) geçildi ve GPU render
@@ -678,7 +682,7 @@ sleep 2
 
 **Alışkanlık:** Garip bir davranış görüldüğünde ilk iş bu. `tarama_kontrol`
 Sprint 5'te (navigasyon_koprusu.py'nin onu subprocess olarak başlatmasıyla)
-eklendi — bkz. NOTLAR.md SORUN 8 ek notu (24 Ağustos 2026).
+eklendi — bkz. NOTLAR.md SORUN 8 ek notu.
 
 ## S4 — teleop KeyError
 
@@ -776,10 +780,10 @@ daha büyük görünsün.
 | 1 | TF ağacı doğrulama | ✅ |
 | 2 | Kamera iç parametreleri | ✅ hazır (`/camera/camera_info`, kalibrasyon gerekmez) |
 | 3 | **Işın-düzlem kesişimi** | ✅ TAMAMLANDI — hem basit (Aşama B, `kat_tespit.py`) hem piksel bazlı (Aşama A, `piksel_kat_tespit.py` → `kutu_tespit.py`) |
-| 4 | Mesafe: oracle modu | ✅ TAMAMLANDI (24 Ağustos 2026) — `oracle_algi_karsilastirma.py`, bkz. §7 Sprint 5 madde 5 |
+| 4 | Mesafe: oracle modu | ✅ TAMAMLANDI — `oracle_algi_karsilastirma.py`, bkz. §7 Sprint 5 madde 5 |
 | 5 | Mesafe: algı modu (line fitting) | ☐ hâlâ yapılmadı — bilinçli erteleme (kapsam dışı bırakıldı, bkz. §7 Sprint 5 madde 5). Fiilen kullanılan tek algı kaynağı hâlâ tek-nokta LIDAR minimum'u (`self.mesafe`) — gerçek bir çizgi uydurma değil |
 
-### 2D — Nesne tespiti 🔄 DEVAM EDİYOR (raf kapsamlama düzeltildi, 23 Ağustos 2026)
+### 2D — Nesne tespiti 🔄 DEVAM EDİYOR (raf kapsamlama düzeltildi)
 
 | # | İş | Not |
 |---|---|---|
@@ -805,7 +809,7 @@ Hareket halinde tespit yapılmaz — motion blur tespiti bozar.
 **Sprint 2 çıktısı:** Robot bir rafın önünde durup üç katı tarayabiliyor,
 gördüğü nesnelerin rengini, boyutunu ve **hangi katta olduğunu** raporluyor.
 
-### 2E — 9 raf uçtan uca perception testi (23 Ağustos 2026)
+### 2E — 9 raf uçtan uca perception testi
 
 **Metodoloji — Nav2 KULLANILMADI:** Robot her raf için `gz service
 /world/default/set_pose` ile doğrudan WORLD-frame duruş noktasına
@@ -890,7 +894,7 @@ kendi açık maddesi) yapılana kadar bu soru açık kalıyor.
 **Nav2 uyarısı:** Koridor 3.2 m, yan geçitler 1.2 m. `inflation_radius` buna
 göre ayarlanmalı, yoksa "no valid path" hatası alınır.
 
-### 3A — Controller: DWB → Regulated Pure Pursuit geçişi (18 Ağustos 2026) ✅
+### 3A — Controller: DWB → Regulated Pure Pursuit geçişi ✅
 
 **Sorun — "git-dur-git" kekemeliği:** Nav2 ayağa kaldırılıp DWB local
 planner ile ilk navigasyon testleri yapıldığında robot düz bir koridorda
@@ -937,7 +941,7 @@ geçti (tek deneme, tek açı). **Sistematik/tekrarlı test edilmedi** —
 farklı giriş açılarından, farklı başlangıç konumlarından tekrarlanmalı.
 Bkz. §12 açık madde.
 
-### 3D — Adres veritabanı: iki aşamalı hesaplama + AMCL yanlış-kilitlenme keşfi (20 Ağustos 2026) 🔄
+### 3D — Adres veritabanı: iki aşamalı hesaplama + AMCL yanlış-kilitlenme keşfi 🔄
 
 **Adım 1 — 2-nokta rigid-transform kalibrasyonu:** `konum_yakala.py` ile
 her rafı tek tek elle sürüp ölçmek yerine (9 sürüş), sadece 2 referans raf
@@ -976,7 +980,7 @@ gönderiliyor.
 | A3 | ❌ lokalizasyon düzeltmesinden SONRA BILE tekrar tekrar başarısız (`Failed to make progress`, `ABORTED`) — kök sebep net değil, **açık sorun** (bkz. §12) |
 | B1, B2, B3, C1, C2 | ☐ henüz test edilmedi |
 
-## Sprint 4 — LLM komut çözümleme ✅ TAMAMLANDI (23 Ağustos 2026)
+## Sprint 4 — LLM komut çözümleme ✅ TAMAMLANDI
 
 | # | İş | Durum |
 |---|---|---|
@@ -992,11 +996,11 @@ gönderiliyor.
 sabit dosya, LLM çağrısı internet üzerinden gidiyor, test için sadece
 `uvicorn main:app` yeterli.
 
-**Model notu:** `gemini-3.6-flash` kullanılıyor (`gemini-2.5-flash` 23
-Ağustos 2026 itibarıyla yeni hesaplara kapatıldı, 404 hatası). API key
-formatı da değişti: Google artık `AIzaSy...` yerine `AQ.Ab...` ("Auth key")
-formatında key veriyor (Haziran 2026 itibarıyla); eski format Eylül 2026'da
-tamamen kapanacak. `google-genai` SDK'sı yeni formatı native destekliyor.
+**Model notu:** `gemini-3.6-flash` kullanılıyor (`gemini-2.5-flash` yeni
+hesaplara kapatıldı, 404 hatası). API key formatı da değişti: Google artık
+`AIzaSy...` yerine `AQ.Ab...` ("Auth key") formatında key veriyor; eski
+format ileride tamamen kapanacak. `google-genai` SDK'sı yeni formatı
+native destekliyor.
 
 **Bulunan ve düzeltilen hata:** `envanter.json`'un gerçek yapısı düz bir
 kutu listesi değil — üst seviyede `raf_konumlari`, `kat_yuzeyleri`,
@@ -1024,7 +1028,7 @@ anahtarı olmadan LLM çağrısı mock'lanarak test ediliyor, hepsi geçiyor.
   koordinata çevirme (`adres_veritabani.json` / `tarama_pozisyonlari.json`)
   Sprint 3'ün navigasyon katmanının işi.
 - `belirsiz:true` durumunda kullanıcıya soracak arayüz/akış henüz yok.
-- **✅ KARAR VERİLDİ (23 Ağustos 2026):** ROS 2 tarafında yeni bir node
+- **✅ KARAR VERİLDİ:** ROS 2 tarafında yeni bir node
   (öneri: `navigasyon_koprusu.py`) FastAPI servisine HTTP isteği atacak;
   `llm_servis` ROS 2'den tamamen bağımsız kalmaya devam edecek (Sprint
   4'ün "bu servis simülasyon gerektirmiyor" tasarım ilkesiyle tutarlı).
@@ -1044,7 +1048,7 @@ anahtarı olmadan LLM çağrısı mock'lanarak test ediliyor, hepsi geçiyor.
 **Güvenlik:** API anahtarı `.env`'de tutulacak, `.bashrc`'ye **asla** yazılmayacak,
 `.gitignore`'a eklenecek. (Sprint 1'de bu konuda bir olay yaşandı.)
 
-## Sprint 5 — Entegrasyon ve envanter 🔄 KOD TAMAMLANDI (24 Ağustos 2026, canlı Nav2 doğrulaması SORUN 18 ile sınırlı)
+## Sprint 5 — Entegrasyon ve envanter 🔄 KOD TAMAMLANDI (canlı Nav2 doğrulaması SORUN 18 ile sınırlı)
 
 | # | İş | Durum |
 |---|---|---|
@@ -1067,7 +1071,7 @@ anahtarı olmadan LLM çağrısı mock'lanarak test ediliyor, hepsi geçiyor.
 
 **Sprint 5 çıktısı:** Tam senaryo demosu. **Projenin can alıcı noktası.**
 
-### Madde 5 sonucu — Oracle vs algı mesafe karşılaştırması (24 Ağustos 2026)
+### Madde 5 sonucu — Oracle vs algı mesafe karşılaştırması
 
 **Metodoloji:** Nav2 KULLANILMADI — robot her raf için `gz service set_pose`
 ile doğrudan WORLD-frame standart tarama pozuna (`RAF_YARI_DERINLIK=0.4` +
@@ -1103,9 +1107,9 @@ ve önünde başka bir engel olmadığında geçerli; gerçek bir çizgi uydurma
 olmadığı için yamuk duruş veya yandaki bir direk/kutu bu hatayı çok daha
 büyütebilir (bkz. yukarıdaki BİLİNEN SINIR notu).
 
-## Sprint 6 — Ölçüm, cilalama, sunum 🔄 DEVAM EDİYOR (25 Ağustos 2026, 4 sonuç: 2 mevcut veriyle, 2 yeni canlı testle)
+## Sprint 6 — Ölçüm, cilalama, sunum 🔄 DEVAM EDİYOR (4 sonuç: 2 mevcut veriyle, 2 yeni canlı testle)
 
-> **ÖNCELİK UYARISI (24 Ağustos 2026): Sprint 6'ya başlamadan önce (veya
+> **ÖNCELİK UYARISI: Sprint 6'ya başlamadan önce (veya
 > en azından paralelde) `NOTLAR.md` SORUN 18 ele alınmalı.** SORUN 18
 > (Nav2 planlayıcısının spawn noktası civarında sistematik başarısızlığı,
 > "Robot is out of bounds of the costmap" — bkz. detaylar) bu konuşma
@@ -1113,8 +1117,10 @@ büyütebilir (bkz. yukarıdaki BİLİNEN SINIR notu).
 > değil, yeniden üretilebilir bir kalıp. Aşağıdaki "Görev başarı oranı"
 > metriği DOĞRUDAN gerçek Nav2 navigasyon başarısına dayanıyor — SORUN 18
 > açık kaldığı sürece bu metrik (ve Sprint 5 madde 1/4'ün uçtan uca canlı
-> doğrulaması) ölçülemez/tamamlanamaz. Kök sebep henüz bulunmadı; ayrı,
-> odaklanmış bir araştırma oturumu gerektirebilir.
+> doğrulaması) ölçülemez/tamamlanamaz. **Kök sebep bulundu** (kayıtlı
+> harita robotun spawn/kapı bölgesini kapsamıyor — bkz. `NOTLAR.md`
+> SORUN 18), ama düzeltme (yeniden haritalama + 9 rafın yeniden
+> kalibrasyonu) zaman kısıtı nedeniyle ertelendi.
 
 **Metrikler** (ground truth sayesinde nicel):
 
@@ -1152,10 +1158,10 @@ büyütebilir (bkz. yukarıdaki BİLİNEN SINIR notu).
 > bir sütun olarak tutulmalı (bkz. `tarama_kontrol.py`'nin `fazla_tespit`
 > alanı, mevcut kaba yaklaşım).
 
-### Sonuç 1 — Tespit precision/recall (25 Ağustos 2026, YENİ TEST YOK)
+### Sonuç 1 — Tespit precision/recall (YENİ TEST YOK)
 
-**Kaynak:** §7 Sprint 2E "9 raf uçtan uca perception testi" (1. geçiş,
-23 Ağustos 2026) tablosundaki ham sayılar — yeni bir canlı tur
+**Kaynak:** §7 Sprint 2E "9 raf uçtan uca perception testi" (1. geçiş)
+tablosundaki ham sayılar — yeni bir canlı tur
 gerektirmedi, sadece aritmetik. Yukarıdaki "payda tasarımı" notuna göre
 `kapsam dışı` precision paydasına **girmiyor** (o rafa geometrik olarak
 ait olamayacağı zaten biliniyor, ayrı bir hata modu — komşu raf sızıntısı);
@@ -1196,9 +1202,9 @@ x=mesafe düzlem varsayımının derinlik belirsizliği) hâlâ çözülmedi.
 sızıntısı (SORUN 12) precision hesabından çıkarılmasa bile ciddi
 boyutta — bu ayrı bir iyileştirme maddesi olarak kalıyor.
 
-### Sonuç 2 — Oracle vs algı mesafe karşılaştırması (25 Ağustos 2026, YENİ TEST YOK)
+### Sonuç 2 — Oracle vs algı mesafe karşılaştırması (YENİ TEST YOK)
 
-**Kaynak:** Sprint 5 Madde 5 sonucu (24 Ağustos 2026) — tam metodoloji
+**Kaynak:** Sprint 5 Madde 5 sonucu — tam metodoloji
 için yukarıya bkz., burada sadece rapor için tablo tekrarlanıyor.
 
 | Raf | Oracle (m) | Algı (m) | Fark | Fark % |
@@ -1219,7 +1225,7 @@ sorusuna (§4.6) ilk nicel cevap. Geçerlilik sınırı için Sprint 5
 Madde 5'teki BİLİNEN SINIR notuna bakın (sadece rafa kare duruşta,
 çizgi uydurma değil).
 
-### Sonuç 3 — Sorgu ayrıştırma doğruluğu: anahtar-kelime vs LLM (25 Ağustos 2026, TAMAMLANDI)
+### Sonuç 3 — Sorgu ayrıştırma doğruluğu: anahtar-kelime vs LLM (TAMAMLANDI)
 
 **Kaynak:** Yeni oluşturulan `llm_servis/dogruluk_seti.json` (69 elle
 etiketlenmiş komut: 23 adres / 23 arama / 22 sayım + 1 şema-dışı sınır
@@ -1245,7 +1251,7 @@ yaklaşımının **temiz, öngörülebilir cümlelerde** şaşırtıcı derecede
 ama **kelime dağarcığı dışına çıkan her ifadede kırılgan** olduğunu
 gösteriyor (tam olarak LLM'in vaat ettiği kazanç alanı).
 
-**SAĞLAYICI DEĞİŞİKLİĞİ: Gemini → Groq (25 Ağustos 2026).** Yukarıdaki
+**SAĞLAYICI DEĞİŞİKLİĞİ: Gemini → Groq.** Yukarıdaki
 günlük kota duvarı (`gemini-3.6-flash`,
 `GenerateRequestsPerDayPerProjectPerModel-FreeTier`, limit=20/**gün**)
 kalıcı bir engel olduğu için LLM sağlayıcısı Groq'a taşındı — SADECE
@@ -1353,7 +1359,7 @@ regex akışları) önce, Nav2 gerektirenler SORUN 18 çözülünce.
 **Diğer:** hata yönetimi, README, mimari diyagramı, `NOTLAR.md` → Word,
 demo videosu, sunum.
 
-### Sonuç 4 — Tilt vs sabit kamera baseline'ı (25 Ağustos 2026, TAMAMLANDI, canlı test)
+### Sonuç 4 — Tilt vs sabit kamera baseline'ı (TAMAMLANDI, canlı test)
 
 **Kaynak:** Yeni `coklu_raf_tarama_testi.py` (Sprint 5 Madde 5'teki
 `gz service set_pose` teleport yöntemiyle AYNI) — 9 rafın her biri
@@ -1871,7 +1877,7 @@ kütüphaneleri var, Gazebo'nun grafiğini bozabilir.
       raf gorsel geometrisinde (mavi direk/turuncu tabla cakismasi)
       gercek bir sorun olabilir, kontrol edilecek.
 
-      GUNCELLEME (12 Agustos 2026, dogru mesafede test sonrasi):
+      GUNCELLEME (dogru mesafede test sonrasi):
       Dogru mesafede (1.6m, rafa dik) tekrar test edildi - en-boy orani
       filtresi orada da YETERSIZ kaldi. Sebep: direkler rafin en kenarinda
       oldugundan genis FOV (1.3 rad) tum raf genisligini alabilmek icin
@@ -1895,7 +1901,7 @@ kütüphaneleri var, Gazebo'nun grafiğini bozabilir.
       mumkunse envanterdeki bilinen konumla capraz kontrolle tekrar
       test edilmeli.
 
-      GUNCELLEME (23 Agustos 2026, Sprint 2D/2E tamamlama calismasi):
+      GUNCELLEME (Sprint 2D/2E tamamlama calismasi):
       ✅ DOGRULANDI. yanal_konum alani /tespitler JSON'una eklendi (daha
       once hesaplanip atiliyordu). 35 karelik canli B2 testinde (kamera
       kat2 tiltinde sabit tutulup /tespitler dinlendi) gercek mavi kutu
@@ -1931,7 +1937,7 @@ kütüphaneleri var, Gazebo'nun grafiğini bozabilir.
       farki `fazla_tespit` alaniyla raporda gosteriyor). Sprint 6
       metrik tasarimini etkiler, bkz. §7 Metrikler notu.
 
-      GUNCELLEME (23 Agustos 2026, Sprint 2D/2E tamamlama calismasi):
+      GUNCELLEME (Sprint 2D/2E tamamlama calismasi):
       🔄 KISMEN COZULDU. kapsam_disi ayrimi eklendi (RAF_UZUNLUK=2.8,
       yanal_konum'un ±1.4 ici/disi kontrolu) - `fazla_tespit`'ten
       BILEREK AYRI tutuldu (farkli hata modlari: kapsam_disi = raf
@@ -1964,7 +1970,7 @@ kütüphaneleri var, Gazebo'nun grafiğini bozabilir.
       gore tasarlanmali; coklu eslesme durumunda (orn. "13 kirmizi kutu var")
       belirsizlik yonetimi asil odak noktasi olarak kaliyor, bu degismedi.
 
-- [x] KOK SEBEP BULUNDU VE DUZELTILDI (20 Agustos 2026) — adres_veritabani.json
+- [x] KOK SEBEP BULUNDU VE DUZELTILDI — adres_veritabani.json
       koordinatlari yanlisti, "A1'e git dedi C1'e gitti" gozlemi bu yuzdenmis:
 
       Adres veritabanindaki ilk 9 raf koordinati (commit 1584ecf) depo.sdf'teki
@@ -1998,7 +2004,7 @@ kütüphaneleri var, Gazebo'nun grafiğini bozabilir.
       zaman "map koordinatlarini biliyorum" anlamina gelmez — ikisi olculerek
       veya acikca TF ile birbirine baglanarak eslenmelidir.
 
-- [ ] A3 rafi ACIK SORUN (20 Agustos 2026, bkz. §7 Sprint 3 3D): hedef
+- [ ] A3 rafi ACIK SORUN (bkz. §7 Sprint 3 3D): hedef
       koordinati haritadan_adres_cikar.py + costmap analiziyle guvenli
       dogrulandi, AMCL yanlis-kilitlenme sorunu da /reinitialize_global_localization
       + sayisal /initialpose ile duzeltildi, ama Nav2 navigasyonu A3'e hala
