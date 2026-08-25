@@ -3,12 +3,29 @@ llm_saglayici.py -- TUM saglayici cagrisi bu dosyada toplanir.
 
 PROJE_DOSYASI.md Sprint 4, madde 3: "Saglayici cagrisini tek fonksiyonda
 topla (gecis kolayligi)". Yani: bu dosyanin DISINDA hicbir yerde
-'google.generativeai' ya da baska bir saglayici SDK'si import EDILMEZ.
-Yarin Groq'a veya OpenRouter'a gecmek istersen sadece bu dosya degisir,
-komut_cozumleyici.py ve main.py tek satir bile degismez.
+saglayiciya ozgu bir SDK import EDILMEZ. Bu sayede Sprint 6'da
+Gemini'den Groq'a gecis SADECE bu dosya degistirilerek yapildi --
+komut_cozumleyici.py, main.py, sorgu_semasi.py ve navigasyon_koprusu.py
+TEK SATIR bile degismedi (llm_cagir'in imzasi ve LLMYaniti/LLMHatasi/
+LLMKotaHatasi/LLMYanitHatasi sozlesmesi AYNEN korundu -- bkz.
+PROJE_DOSYASI.md Sprint 6 Sonuc 3, "Groq'a gecis" notu).
 
 Guvenlik (PROJE_DOSYASI.md Sprint 4 notu + Sprint 1'deki API anahtari
 olayi): anahtar SADECE .env'den okunur, koda asla yazilmaz.
+
+SAGLAYICI GECMISI:
+- Sprint 4-6 (23-25 Agustos 2026): Google Gemini (gemini-3.6-flash).
+  Sprint 6'nin TUM canli LLM dogrulamalari (Madde 1/3/5/6 eylem ayrimi,
+  secim, iptal, en yakin -- bkz. navigasyon_koprusu.py) bu saglayiciyla
+  yapildi.
+- 25 Agustos 2026: Groq'a gecildi -- sebep, Gemini ucretsiz katmaninin
+  GUNLUK (dakikalik degil) kotasi (gemini-3.6-flash,
+  GenerateRequestsPerDayPerProjectPerModel-FreeTier, limit=20/GUN) Sprint 6
+  dogruluk_olcum.py ile tekrar tekrar tukendi (bkz. PROJE_DOSYASI.md
+  Sprint 6 Sonuc 3). GOOGLE_API_KEY .env'de KASITLI olarak SILINMEDI --
+  ileride geri donulmek istenirse hazir dursun (kullanilmiyor).
+  GECIS ONCESI GEMINI ILE YAPILAN TUM CANLI TESTLER GROQ ILE HENUZ
+  YENIDEN DOGRULANMADI -- bu onemli bir bosluk, gizlenmemeli.
 """
 
 from __future__ import annotations
@@ -17,16 +34,21 @@ import os
 from dataclasses import dataclass
 
 import httpx
-from google import genai
-from google.genai import types
-from google.genai.errors import APIError, ClientError, ServerError
+from groq import (
+    APIConnectionError,
+    APIStatusError,
+    APITimeoutError,
+    Groq,
+    GroqError,
+    RateLimitError,
+)
 
 
 class LLMHatasi(Exception):
     """Saglayici cagrisiyla ilgili tum hatalarin ortak tabani.
 
     Ust katmanlar (komut_cozumleyici.py, main.py) sadece bu tipi
-    yakalar -- Gemini'ye ozgu istisna tiplerini bilmek zorunda kalmazlar.
+    yakalar -- saglayiciya ozgu istisna tiplerini bilmek zorunda kalmazlar.
     Bu da saglayici degisikliginde ust katmanlarin degismemesini saglar.
     """
 
@@ -47,26 +69,53 @@ class LLMYaniti:
     model: str
 
 
-_MODEL_ADI = "gemini-3.6-flash"  # 2.5-flash yeni hesaplara kapatildi (Google'in
-                                  # kendi hata mesaji bu modeli oneriyor, Agustos 2026)
+# Sprint 6 Groq gecisinde (25 Agustos 2026) 3 aday CANLI karsilastirmayla
+# test edildi (SISTEM_TALIMATI + 3 ornek komut, biri "hard"/dolayli):
+#   - openai/gpt-oss-120b : 3/3 dogru JSON, hizli (~1-2s)          -> SECILDI
+#   - qwen/qwen3.6-27b    : 1/3 gecersiz JSON uretti (json_validate_failed)
+#   - groq/compound-mini  : agentic bir sarmalayici (perde arkasinda
+#                           deprecate edilmis llama-3.3-70b-versatile'i
+#                           kullaniyor, hata mesajindan anlasildi), 2.
+#                           istekte paylasilan TPM kotasina carpti
+# llama-3.3-70b-versatile (kullanicinin ilk onerisi) Groq'un dogrudan
+# cagrilabilir model listesinde (client.models.list()) ARTIK YOK --
+# varsayilmadi, canli sorguyla dogrulandi.
+_MODEL_ADI = "openai/gpt-oss-120b"
 _ZAMAN_ASIMI_SN = 20.0
 
-_istemci: genai.Client | None = None
+# Adim 3 kucuk-olcekli canli dogrulamada (25 Agustos 2026) bulunan gercek
+# sorun: Groq'un json_object modu SEMAYI ZORLAMIYOR (bkz. modul docstring'i
+# ve llm_cagir icindeki ayni uyari) -- "Kac kirmizi kutu var?" gibi bir
+# sayim sorgusunda model "en_yakin": null dondurdu, ama Sorgu semasinda
+# en_yakin duz bir bool (Optional degil) oldugu icin pydantic bunu
+# reddetti. SISTEM_TALIMATI'nin kendisi (komut_cozumleyici.py) BURADAN
+# DEGISTIRILMEDI -- kullanicinin onayiyla sadece Groq'a giden sistem
+# mesajinin SONUNA, bu dosyaya ozel kisa bir hatirlatma EKLENIYOR.
+_GROQ_EK_HATIRLATMA = (
+    "\n\nEK KURAL (JSON gecerliligi icin kritik): 'en_yakin' alani "
+    "ASLA null olamaz -- sadece true veya false olmali (varsayilan false)."
+)
 
 
-def _istemci_al() -> genai.Client:
+def _groq_sistem_mesaji(sistem_talimati: str) -> str:
+    return sistem_talimati + _GROQ_EK_HATIRLATMA
+
+_istemci: Groq | None = None
+
+
+def _istemci_al() -> Groq:
     """Istemciyi tembel (lazy) olusturur -- API anahtari sadece
     gercekten cagri yapilacagi an okunur, import aninda degil.
     Boylece anahtar yoksa bile modul import edilebilir (testler icin)."""
     global _istemci
     if _istemci is None:
-        anahtar = os.environ.get("GOOGLE_API_KEY")
+        anahtar = os.environ.get("GROQ_API_KEY")
         if not anahtar:
             raise LLMHatasi(
-                "GOOGLE_API_KEY bulunamadi. .env dosyasina ekleyin "
+                "GROQ_API_KEY bulunamadi. .env dosyasina ekleyin "
                 "(bkz. .env.example). .bashrc'ye ASLA yazmayin."
             )
-        _istemci = genai.Client(api_key=anahtar)
+        _istemci = Groq(api_key=anahtar)
     return _istemci
 
 
@@ -87,36 +136,47 @@ def llm_cagir(sistem_talimati: str, kullanici_metni: str) -> LLMYaniti:
     """
     istemci = _istemci_al()
     try:
-        yanit = istemci.models.generate_content(
+        yanit = istemci.chat.completions.create(
             model=_MODEL_ADI,
-            contents=kullanici_metni,
-            config=types.GenerateContentConfig(
-                system_instruction=sistem_talimati,
-                temperature=0.0,  # yapilandirilmis JSON icin tutarlilik onemli
-                response_mime_type="application/json",
-                http_options=types.HttpOptions(timeout=int(_ZAMAN_ASIMI_SN * 1000)),
-            ),
+            messages=[
+                {"role": "system", "content": _groq_sistem_mesaji(sistem_talimati)},
+                {"role": "user", "content": kullanici_metni},
+            ],
+            temperature=0.0,  # yapilandirilmis JSON icin tutarlilik onemli
+            # DIKKAT: Gemini'nin response_mime_type'inin aksine, Groq'un
+            # json_object modu SADECE "gecerli JSON uret" garantisi verir --
+            # BIZIM SORGU SEMAMIZA uyacagini GARANTI ETMEZ. Sema uyumu
+            # SISTEM_TALIMATI'ndaki (komut_cozumleyici.py) aciklama ve
+            # orneklere birakiliyor; bu dosyaya veya SISTEM_TALIMATI'na
+            # ekstra bir sema-hatirlatmasi EKLENMEDI -- 3 canli ornekle
+            # (yukaridaki model secim notu) zaten yeterince guvenilir
+            # bulundu, gereksiz degisiklik yapilmadi.
+            response_format={"type": "json_object"},
+            timeout=_ZAMAN_ASIMI_SN,
         )
-    except ClientError as e:
-        # 429 = kota/rate limit, google-genai bunu status_code ile veriyor
-        if getattr(e, "code", None) == 429:
-            raise LLMKotaHatasi(f"Gemini kota/rate limit asildi: {e}") from e
-        raise LLMHatasi(f"Gemini istemci hatasi: {e}") from e
-    except ServerError as e:
-        raise LLMHatasi(f"Gemini sunucu hatasi (gecici olabilir): {e}") from e
-    except APIError as e:
-        raise LLMHatasi(f"Gemini API hatasi: {e}") from e
-    except (TimeoutError, httpx.TimeoutException) as e:
-        # httpx.TimeoutException (ReadTimeout/ConnectTimeout/vb.) builtin
-        # TimeoutError'dan miras ALMIYOR -- google-genai http_options
-        # zaman asimini alttaki httpx istemcisiyle uyguluyor, o yuzden
-        # bu ayrica yakalanmazsa asagi katmanlara LLMHatasi degil ham
-        # httpx exception'i sizip programi cokertiyor (Sprint 6
-        # dogruluk_olcum.py ile canli API testinde yakalandi).
-        raise LLMHatasi(f"Gemini zaman asimi ({_ZAMAN_ASIMI_SN}s): {e}") from e
+    except RateLimitError as e:
+        raise LLMKotaHatasi(f"Groq kota/rate limit asildi: {e}") from e
+    except APITimeoutError as e:
+        raise LLMHatasi(f"Groq zaman asimi ({_ZAMAN_ASIMI_SN}s): {e}") from e
+    except httpx.TimeoutException as e:
+        # Gemini gecisinde ogrenilen ders (bkz. PROJE_DOSYASI.md Sprint 6
+        # Sonuc 3): alttaki httpx istemcisinin attigi ReadTimeout/vb.
+        # exception'lar SDK'nin kendi APITimeoutError'una HER ZAMAN
+        # sarilmayabilir -- ayrica yakalanmazsa LLMHatasi'ye donusmeden
+        # sizip programi cokertir. Ayni savunma burada da uygulandi.
+        raise LLMHatasi(f"Groq zaman asimi (httpx, {_ZAMAN_ASIMI_SN}s): {e}") from e
+    except APIConnectionError as e:
+        raise LLMHatasi(f"Groq baglanti hatasi: {e}") from e
+    except APIStatusError as e:
+        # RateLimitError/APITimeoutError yukarida ayri yakalandigi icin
+        # buraya sadece diger durum kodlari (400/401/403/404/409/422/5xx)
+        # duser -- orn. canli testte gorulen json_validate_failed (400).
+        raise LLMHatasi(f"Groq API hatasi (status={e.status_code}): {e}") from e
+    except GroqError as e:
+        raise LLMHatasi(f"Groq hatasi: {e}") from e
 
-    metin = getattr(yanit, "text", None)
+    metin = yanit.choices[0].message.content if yanit.choices else None
     if not metin:
-        raise LLMYanitHatasi("Gemini bos yanit dondurdu (guvenlik filtresi olabilir).")
+        raise LLMYanitHatasi("Groq bos yanit dondurdu (guvenlik filtresi olabilir).")
 
     return LLMYaniti(metin=metin, model=_MODEL_ADI)

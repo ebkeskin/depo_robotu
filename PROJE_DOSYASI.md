@@ -1219,7 +1219,7 @@ sorusuna (§4.6) ilk nicel cevap. Geçerlilik sınırı için Sprint 5
 Madde 5'teki BİLİNEN SINIR notuna bakın (sadece rafa kare duruşta,
 çizgi uydurma değil).
 
-### Sonuç 3 — Sorgu ayrıştırma doğruluğu: anahtar-kelime taban çizgisi (25 Ağustos 2026, LLM tarafı KOTA nedeniyle YARIM)
+### Sonuç 3 — Sorgu ayrıştırma doğruluğu: anahtar-kelime vs LLM (25 Ağustos 2026, TAMAMLANDI)
 
 **Kaynak:** Yeni oluşturulan `llm_servis/dogruluk_seti.json` (69 elle
 etiketlenmiş komut: 23 adres / 23 arama / 22 sayım + 1 şema-dışı sınır
@@ -1245,36 +1245,110 @@ yaklaşımının **temiz, öngörülebilir cümlelerde** şaşırtıcı derecede
 ama **kelime dağarcığı dışına çıkan her ifadede kırılgan** olduğunu
 gösteriyor (tam olarak LLM'in vaat ettiği kazanç alanı).
 
-**LLM tarafı (gerçek Gemini API) HENÜZ ÖLÇÜLEMEDİ — engel: günlük
-kota.** `gemini-3.6-flash` ücretsiz katmanının kotası
-(`GenerateRequestsPerDayPerProjectPerModel-FreeTier`, limit=20/**gün**,
-dakikalık değil) bu ölçümden önce tükenmiş durumda; 69 komuttan hiçbiri
-ilk denemeden itibaren başarılı olamadı, tamamı 429 döndü. AI Studio'nun
-hesaba özel kota sayfası (`aistudio.google.com/rate-limit`) kimlik
-doğrulaması gerektirdiği için buradan kontrol edilemedi; genel/herkese
-açık dokümantasyon sayfası artık sabit RPD tablosu içermiyor, hesaba
-özel sayfaya yönlendiriyor.
+**SAĞLAYICI DEĞİŞİKLİĞİ: Gemini → Groq (25 Ağustos 2026).** Yukarıdaki
+günlük kota duvarı (`gemini-3.6-flash`,
+`GenerateRequestsPerDayPerProjectPerModel-FreeTier`, limit=20/**gün**)
+kalıcı bir engel olduğu için LLM sağlayıcısı Groq'a taşındı — SADECE
+`llm_servis/llm_saglayici.py` değişti (`llm_cagir`'in imzası ve
+`LLMYaniti`/`LLMHatasi` ailesi TEK KARAKTER değişmeden korundu;
+`komut_cozumleyici.py`, `main.py`, `sorgu_semasi.py`,
+`navigasyon_koprusu.py` HİÇ değişmedi — Sprint 4'ün "sağlayıcı çağrısını
+tek fonksiyonda topla" mimari kararı tam amaçlandığı gibi işledi;
+`test_komut_cozumleyici.py`'nin 16 testi geçişten sonra da geçmeye
+devam ediyor).
 
-**Yan bulgu (bu ölçüm sırasında keşfedilen, düzeltilen gerçek bug):**
-`llm_saglayici.py`, alttaki HTTP istemcisinin attığı `httpx.ReadTimeout`'u
-yakalamıyordu (builtin `TimeoutError`'dan miras almıyor) — 20s zaman
-aşımı dolduğunda `LLMHatasi`'ye sarılmadan ham exception sızıp programı
-çökertiyordu. `except (TimeoutError, httpx.TimeoutException)` ile
-düzeltildi, `requirements.txt`'ye `httpx` eklendi,
-`test_komut_cozumleyici.py`'nin 16 testi bu değişiklikten sonra da
-geçmeye devam ediyor.
+Model seçimi canlı karşılaştırmayla yapıldı — kullanıcının ilk önerdiği
+`llama-3.3-70b-versatile` Groq'un güncel model listesinde ARTIK YOK
+(deprecate edilmiş, `client.models.list()` ile doğrulandı, varsayılmadı).
+3 aday (`openai/gpt-oss-120b`, `qwen/qwen3.6-27b`, `groq/compound-mini`)
+SISTEM_TALIMATI + 3 örnekle test edildi: `qwen/qwen3.6-27b` 1/3'te
+geçersiz JSON üretti; `groq/compound-mini`'nin perde arkasında deprecate
+`llama-3.3-70b-versatile`'ı kullanan agentic bir sarmalayıcı olduğu
+(hata mesajından) ortaya çıktı ve paylaşılan bir TPM kotasına hemen
+çarptı. **Seçilen: `openai/gpt-oss-120b`** (3/3 doğru, en büyük normal/
+agentic-olmayan model).
 
-**Ayrıca düzeltilen güvenlik sorunu (aynı oturumda):**
-`llm_servis/.env.example` içine yanlışlıkla commit edilmiş gerçek bir
-Google AI Studio API anahtarı bulundu, placeholder ile değiştirildi.
-Anahtarın kendisinin Google AI Studio'dan iptali kullanıcıya bırakıldı
-(kod düzeltmesi geçmişte sızmış anahtarı geçersiz kılmaz).
+Küçük ölçekli doğrulamada (9 örnek) bir şema-uyum sorunu bulundu:
+Groq'un `json_object` modu, Gemini'nin `response_mime_type`'ının
+aksine şemayı ZORLAMIYOR — bir sayım sorgusunda model `"en_yakin":
+null` döndürdü, şemada bu alan düz `bool` (Optional değil) olduğu için
+pydantic reddetti. Düzeltme: `SISTEM_TALIMATI`'nın kendisine
+DOKUNULMADAN, sadece `llm_saglayici.py` içinde Groq'a giden sistem
+mesajının sonuna kısa bir hatırlatma eklendi (`_groq_sistem_mesaji`).
+Bu düzeltmeden sonra aynı 9 örnek 9/9 tam eşleşti.
 
-**Sonraki adım:** kota sıfırlanınca (Türkiye saatiyle tahmini ~10-11
-civarı, Google'ın gece yarısı Pasifik saatiyle sıfırlama alışkanlığına
-göre) `python3 dogruluk_olcum.py --bekleme 6` (yöntem bayrağı olmadan,
-her iki yöntemi de tek seferde koşturup yan yana tablo üretir) ile tam
-69 komutluk LLM ölçümü tekrar denenecek.
+**Tam 69 komutluk sonuç — anahtar-kelime vs Groq (`openai/gpt-oss-120b`):**
+
+| Metrik | anahtar-kelime | LLM (Groq) |
+|---|---|---|
+| **TAM EŞLEŞME** | **61/69 (%88.4)** | **67/69 (%97.1)** |
+| tip=adres | 20/23 (%87.0) | 23/23 (%100.0) |
+| tip=arama | 20/23 (%87.0) | 23/23 (%100.0) |
+| tip=sayım | 20/22 (%90.9) | 20/22 (%90.9) |
+| alan=tip | 65/69 (%94.2) | 68/69 (%98.6) |
+| alan=raf | 68/69 (%98.6) | 69/69 (%100.0) |
+| alan=kat | 68/69 (%98.6) | 69/69 (%100.0) |
+| alan=eylem | 67/69 (%97.1) | 69/69 (%100.0) |
+| alan=katlar | 69/69 (%100.0) | 69/69 (%100.0) |
+| alan=en_yakin | 65/69 (%94.2) | 68/69 (%98.6) |
+| alan=filtre.renk | 68/69 (%98.6) | 68/69 (%98.6) |
+| alan=filtre.boyut | 65/69 (%94.2) | 68/69 (%98.6) |
+| alan=filtre.raf | 69/69 (%100.0) | 69/69 (%100.0) |
+
+**Yorum — LLM'in kazancı, sayılarla:** Groq, keyword ayrıştırıcının
+kelime dağarcığı dışına çıkan komutların (yukarıdaki 9 "hard" örnek)
+neredeyse hepsinde doğru sonuç verdi — özellikle adres ve arama
+tiplerinde %87.0→%100.0 sıçrama, tam olarak sözlükte olmayan eş anlamlı
+kelime ("iri"→büyük) ve dolaylı niyet ("B2 tarafına geçelim"→git)
+örneklerinde. Toplamda %88.4→%97.1 iyileşme.
+
+**Ama LLM mükemmel değil, KENDİ hata modlarını getirdi (2/69):**
+- `"Kaç tane orta boy karton kutu var?"` → boyut'u doğru çıkardı (orta)
+  ama renk'i (karton) atladı — muhtemelen "karton"un hem bir renk
+  kategorisi hem "karton malzeme" anlamına gelebilmesinden kaynaklanan
+  bir belirsizlik.
+- `"Kaç tane mini kutu var?"` → tip=None (tam ret) döndü — ilginç
+  şekilde bir satır önceki AYNI kalıptaki `"Toplam kaç iri kutu var?"`'u
+  doğru çözmüştü; "mini" özelinde tutarsız davrandı (temperature=0.0
+  olması tam determinizm garanti etmiyor).
+
+Bu ikisi anahtar-kelimenin YAPMADIĞI/farklı hatalar (keyword "karton"u
+substring ile doğru buluyor) — yani LLM keyword'ün başarısız olduğu
+yerlerin çoğunu kazanıyor ama kendi yeni, öngörülemeyen hatalarını da
+getiriyor. "Daha iyi ama kusursuz değil" — somut kanıtla.
+
+**Yan bulgu (bu ölçüm sırasında keşfedilen, düzeltilen gerçek bug,
+Gemini'yle ilgili, geçişten ÖNCE bulundu):** `llm_saglayici.py`, alttaki
+HTTP istemcisinin attığı `httpx.ReadTimeout`'u yakalamıyordu (builtin
+`TimeoutError`'dan miras almıyor) — bu ders Groq entegrasyonuna da
+taşındı (`except httpx.TimeoutException` orada da var).
+
+**Ayrıca düzeltilen güvenlik sorunu (aynı oturumda, LLM sağlayıcısından
+bağımsız):** `llm_servis/.env.example` içine yanlışlıkla commit edilmiş
+gerçek bir Google AI Studio API anahtarı bulundu, placeholder ile
+değiştirildi. Anahtarın kendisinin Google AI Studio'dan iptali
+kullanıcıya bırakıldı (kod düzeltmesi geçmişte sızmış anahtarı
+geçersiz kılmaz).
+
+**⚠️ ÖNEMLİ DÜRÜSTLÜK NOTU — henüz Groq ile doğrulanmamış davranışlar:**
+Sprint 5'in TÜM önceki canlı Nav2 entegrasyon testleri (Madde 1 eylem
+ayrımı git/tara, Madde 3 "en yakını bul", Madde 5 çoklu-eşleşme seçimi
+"ilkini/ikincisini seç", Madde 6 iptal/dur — bkz.
+`navigasyon_koprusu.py`) **Gemini (`gemini-3.6-flash`) ile yapılmıştı**.
+Groq'a geçildikten sonra bu davranışların HİÇBİRİ henüz Groq ile
+yeniden canlı doğrulanmadı. Yukarıdaki 69 komutluk ölçüm SADECE sorgu
+ayrıştırma doğruluğunu (LLM→JSON) test ediyor,
+`navigasyon_koprusu.py`'nin bu JSON'u nasıl işlediğini DEĞİL. Gerçek
+uçtan uca davranış (özellikle eylem=tara/git ayrımının Nav2 tetiklemesi,
+dur/iptal regex'i, seçim akışı) Groq ile HENÜZ test edilmedi.
+
+`GOOGLE_API_KEY` `.env`'de bilerek SİLİNMEDİ — kullanılmıyor, sadece
+geri dönüş için yedek olarak duruyor.
+
+**Sonraki adım:** `navigasyon_koprusu.py`'nin Groq ile uçtan uca canlı
+testi (Madde 1/3/5/6 davranışları) — SORUN 18 açık olduğu için Nav2
+gerektirmeyen kısımlar (Madde 4/5/6'nın llm_servis'e hiç gitmeyen
+regex akışları) önce, Nav2 gerektirenler SORUN 18 çözülünce.
 
 **Diğer:** hata yönetimi, README, mimari diyagramı, `NOTLAR.md` → Word,
 demo videosu, sunum.
