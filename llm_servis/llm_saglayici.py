@@ -16,6 +16,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 
+import httpx
 from google import genai
 from google.genai import types
 from google.genai.errors import APIError, ClientError, ServerError
@@ -105,7 +106,13 @@ def llm_cagir(sistem_talimati: str, kullanici_metni: str) -> LLMYaniti:
         raise LLMHatasi(f"Gemini sunucu hatasi (gecici olabilir): {e}") from e
     except APIError as e:
         raise LLMHatasi(f"Gemini API hatasi: {e}") from e
-    except TimeoutError as e:
+    except (TimeoutError, httpx.TimeoutException) as e:
+        # httpx.TimeoutException (ReadTimeout/ConnectTimeout/vb.) builtin
+        # TimeoutError'dan miras ALMIYOR -- google-genai http_options
+        # zaman asimini alttaki httpx istemcisiyle uyguluyor, o yuzden
+        # bu ayrica yakalanmazsa asagi katmanlara LLMHatasi degil ham
+        # httpx exception'i sizip programi cokertiyor (Sprint 6
+        # dogruluk_olcum.py ile canli API testinde yakalandi).
         raise LLMHatasi(f"Gemini zaman asimi ({_ZAMAN_ASIMI_SN}s): {e}") from e
 
     metin = getattr(yanit, "text", None)

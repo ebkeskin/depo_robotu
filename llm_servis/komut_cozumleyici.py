@@ -120,6 +120,60 @@ def _llm_json_ayikla(ham_metin: str) -> dict:
         raise LLMYanitHatasi(f"LLM gecerli JSON dondurmedi: {e}. Ham metin: {ham_metin[:200]!r}") from e
 
 
+def ham_dogrula(ham: dict) -> SorguSonucu:
+    """Kaynagi ne olursa olsun (LLM ya da baska bir ayristirici, orn.
+    Sprint 6 dogruluk_olcum.py'deki anahtar_kelime_cozumleyici.py) bir
+    'ham' sozlugu Sorgu semasina karsi dogrular. Boylece iki ayristirici
+    da AYNI kurallara tabi olur -- adil karsilastirma. komut_coz bu
+    fonksiyonu KULLANMAZ (kendi ayni mantigin bir kopyasini tasir) --
+    boylece zaten test edilmis komut_coz'a dokunulmamis olur."""
+    if ham.get("tip") is None:
+        return SorguSonucu(
+            basarili=False,
+            hata=ham.get("hata", "Komut depo robotu gorevleriyle eslesmedi."),
+        )
+
+    try:
+        sorgu = Sorgu.model_validate(ham)
+        sorgu.dogrula()
+    except (ValidationError, ValueError) as e:
+        logger.info("Sorgu dogrulama hatasi: %s (ham=%s)", e, ham)
+        return SorguSonucu(basarili=False, hata=f"Komut eksik/tutarsiz: {e}")
+
+    return SorguSonucu(basarili=True, sorgu=sorgu)
+
+
+def sorgu_ayristir(komut_metni: str) -> SorguSonucu:
+    """LLM'i cagirip donen JSON'u Sorgu semasina dogrular -- envantere
+    HIC BAKMAZ. Sprint 6 dogruluk_olcum.py bunu kullanir: olculen sey
+    LLM'in NIYET cikarma basarisi, envanterdeki gercek kutu sayisi
+    degil (ayni komut farkli envanterlerde farkli eslesme sayisi verir,
+    ama dogru sorgu hep ayni kalmali).
+
+    BILINCLI KOD TEKRARI: asagidaki govde komut_coz'un ilk yarisiyla
+    (LLM cagrisi + JSON ayiklama + dogrulama) neredeyse ayni. Bilerek
+    ayri tutuldu -- komut_coz zaten test_komut_cozumleyici.py ile
+    dogrulanmis, canli /komut endpoint'inin kullandigi kod; sadece bir
+    olcum scripti icin onu refactor edip riske atmaktansa ~15 satirlik
+    bu tekrari kabul etmek tercih edildi."""
+    try:
+        yanit = llm_cagir(SISTEM_TALIMATI, komut_metni)
+    except LLMKotaHatasi as e:
+        logger.warning("LLM kota hatasi: %s", e)
+        return SorguSonucu(basarili=False, hata="Sistem su an yogun, birazdan tekrar deneyin.")
+    except LLMHatasi as e:
+        logger.error("LLM cagri hatasi: %s", e)
+        return SorguSonucu(basarili=False, hata=f"Komut anlasilamadi (sistem hatasi): {e}")
+
+    try:
+        ham = _llm_json_ayikla(yanit.metin)
+    except LLMYanitHatasi as e:
+        logger.error("JSON ayiklama hatasi: %s", e)
+        return SorguSonucu(basarili=False, hata="Komut anlasilamadi, lutfen farkli ifade edin.")
+
+    return ham_dogrula(ham)
+
+
 def komut_coz(komut_metni: str, envanter_yolu: Optional[Path] = None) -> SorguSonucu:
     """Ana giris noktasi. FastAPI endpoint'i bunu cagirir.
 

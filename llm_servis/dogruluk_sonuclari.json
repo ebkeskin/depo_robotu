@@ -1,0 +1,3275 @@
+{
+  "veri_seti": [
+    {
+      "komut": "A1'e git",
+      "beklenen": {
+        "tip": "adres",
+        "raf": "A1",
+        "kat": null,
+        "eylem": "git",
+        "katlar": null,
+        "filtre": null,
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "A1'in 2. katına git",
+      "beklenen": {
+        "tip": "adres",
+        "raf": "A1",
+        "kat": 2,
+        "eylem": "git",
+        "katlar": null,
+        "filtre": null,
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "A2'yi tara",
+      "beklenen": {
+        "tip": "adres",
+        "raf": "A2",
+        "kat": null,
+        "eylem": "tara",
+        "katlar": null,
+        "filtre": null,
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "A2'nin 1. ve 3. katlarını tara",
+      "beklenen": {
+        "tip": "adres",
+        "raf": "A2",
+        "kat": null,
+        "eylem": "tara",
+        "katlar": [
+          1,
+          3
+        ],
+        "filtre": null,
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "A3'e doğru ilerle",
+      "beklenen": {
+        "tip": "adres",
+        "raf": "A3",
+        "kat": null,
+        "eylem": "git",
+        "katlar": null,
+        "filtre": null,
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "A3'te ne var, bir bak",
+      "beklenen": {
+        "tip": "adres",
+        "raf": "A3",
+        "kat": null,
+        "eylem": "tara",
+        "katlar": null,
+        "filtre": null,
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "B1'e git ve tara",
+      "beklenen": {
+        "tip": "adres",
+        "raf": "B1",
+        "kat": null,
+        "eylem": "tara",
+        "katlar": null,
+        "filtre": null,
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "B1'in 3. katına git",
+      "beklenen": {
+        "tip": "adres",
+        "raf": "B1",
+        "kat": 3,
+        "eylem": "git",
+        "katlar": null,
+        "filtre": null,
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "B2'yi incele",
+      "beklenen": {
+        "tip": "adres",
+        "raf": "B2",
+        "kat": null,
+        "eylem": "tara",
+        "katlar": null,
+        "filtre": null,
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "B2'nin 1. ve 2. katlarını tara",
+      "beklenen": {
+        "tip": "adres",
+        "raf": "B2",
+        "kat": null,
+        "eylem": "tara",
+        "katlar": [
+          1,
+          2
+        ],
+        "filtre": null,
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "B3'e git",
+      "beklenen": {
+        "tip": "adres",
+        "raf": "B3",
+        "kat": null,
+        "eylem": "git",
+        "katlar": null,
+        "filtre": null,
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "B3'ün 1. katına git",
+      "beklenen": {
+        "tip": "adres",
+        "raf": "B3",
+        "kat": 1,
+        "eylem": "git",
+        "katlar": null,
+        "filtre": null,
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "C1'i tara",
+      "beklenen": {
+        "tip": "adres",
+        "raf": "C1",
+        "kat": null,
+        "eylem": "tara",
+        "katlar": null,
+        "filtre": null,
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "C1'in 2. ve 3. katlarını tara",
+      "beklenen": {
+        "tip": "adres",
+        "raf": "C1",
+        "kat": null,
+        "eylem": "tara",
+        "katlar": [
+          2,
+          3
+        ],
+        "filtre": null,
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "C2'ye git",
+      "beklenen": {
+        "tip": "adres",
+        "raf": "C2",
+        "kat": null,
+        "eylem": "git",
+        "katlar": null,
+        "filtre": null,
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "C2'nin 3. katına git",
+      "beklenen": {
+        "tip": "adres",
+        "raf": "C2",
+        "kat": 3,
+        "eylem": "git",
+        "katlar": null,
+        "filtre": null,
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "C3'e git, kutulara bak",
+      "beklenen": {
+        "tip": "adres",
+        "raf": "C3",
+        "kat": null,
+        "eylem": "tara",
+        "katlar": null,
+        "filtre": null,
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "C3'ün 1. ve 3. katlarını tara",
+      "beklenen": {
+        "tip": "adres",
+        "raf": "C3",
+        "kat": null,
+        "eylem": "tara",
+        "katlar": [
+          1,
+          3
+        ],
+        "filtre": null,
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "A1'i tara",
+      "beklenen": {
+        "tip": "adres",
+        "raf": "A1",
+        "kat": null,
+        "eylem": "tara",
+        "katlar": null,
+        "filtre": null,
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "A2'nin 2. katına git",
+      "beklenen": {
+        "tip": "adres",
+        "raf": "A2",
+        "kat": 2,
+        "eylem": "git",
+        "katlar": null,
+        "filtre": null,
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "A1'in üçüncü katına git",
+      "beklenen": {
+        "tip": "adres",
+        "raf": "A1",
+        "kat": 3,
+        "eylem": "git",
+        "katlar": null,
+        "filtre": null,
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "B2 tarafına geçelim",
+      "beklenen": {
+        "tip": "adres",
+        "raf": "B2",
+        "kat": null,
+        "eylem": "git",
+        "katlar": null,
+        "filtre": null,
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "C1'de neler var, bir kontrol eder misin",
+      "beklenen": {
+        "tip": "adres",
+        "raf": "C1",
+        "kat": null,
+        "eylem": "tara",
+        "katlar": null,
+        "filtre": null,
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "Kırmızı kutuyu bul",
+      "beklenen": {
+        "tip": "arama",
+        "filtre": {
+          "renk": "kirmizi",
+          "boyut": null,
+          "raf": null
+        },
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "En yakın kırmızı kutuyu bul",
+      "beklenen": {
+        "tip": "arama",
+        "filtre": {
+          "renk": "kirmizi",
+          "boyut": null,
+          "raf": null
+        },
+        "en_yakin": true
+      }
+    },
+    {
+      "komut": "Mavi kutuyu bul",
+      "beklenen": {
+        "tip": "arama",
+        "filtre": {
+          "renk": "mavi",
+          "boyut": null,
+          "raf": null
+        },
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "Yeşil kutuyu bul",
+      "beklenen": {
+        "tip": "arama",
+        "filtre": {
+          "renk": "yesil",
+          "boyut": null,
+          "raf": null
+        },
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "Sarı kutuyu bul",
+      "beklenen": {
+        "tip": "arama",
+        "filtre": {
+          "renk": "sari",
+          "boyut": null,
+          "raf": null
+        },
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "Karton kutuyu bul",
+      "beklenen": {
+        "tip": "arama",
+        "filtre": {
+          "renk": "karton",
+          "boyut": null,
+          "raf": null
+        },
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "Büyük kutuyu bul",
+      "beklenen": {
+        "tip": "arama",
+        "filtre": {
+          "renk": null,
+          "boyut": "buyuk",
+          "raf": null
+        },
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "Küçük kutuyu bul",
+      "beklenen": {
+        "tip": "arama",
+        "filtre": {
+          "renk": null,
+          "boyut": "kucuk",
+          "raf": null
+        },
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "Orta boy kutuyu bul",
+      "beklenen": {
+        "tip": "arama",
+        "filtre": {
+          "renk": null,
+          "boyut": "orta",
+          "raf": null
+        },
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "Büyük mavi kutuyu bul",
+      "beklenen": {
+        "tip": "arama",
+        "filtre": {
+          "renk": "mavi",
+          "boyut": "buyuk",
+          "raf": null
+        },
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "Küçük kırmızı kutuyu nerede bulabilirim",
+      "beklenen": {
+        "tip": "arama",
+        "filtre": {
+          "renk": "kirmizi",
+          "boyut": "kucuk",
+          "raf": null
+        },
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "B2'deki kırmızı kutuyu bul",
+      "beklenen": {
+        "tip": "arama",
+        "filtre": {
+          "renk": "kirmizi",
+          "boyut": null,
+          "raf": "B2"
+        },
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "A1'deki büyük kutuyu bul",
+      "beklenen": {
+        "tip": "arama",
+        "filtre": {
+          "renk": null,
+          "boyut": "buyuk",
+          "raf": "A1"
+        },
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "En yakın yeşil kutuyu bul",
+      "beklenen": {
+        "tip": "arama",
+        "filtre": {
+          "renk": "yesil",
+          "boyut": null,
+          "raf": null
+        },
+        "en_yakin": true
+      }
+    },
+    {
+      "komut": "En yakın büyük kutuyu göster",
+      "beklenen": {
+        "tip": "arama",
+        "filtre": {
+          "renk": null,
+          "boyut": "buyuk",
+          "raf": null
+        },
+        "en_yakin": true
+      }
+    },
+    {
+      "komut": "C3'teki sarı kutuyu bul",
+      "beklenen": {
+        "tip": "arama",
+        "filtre": {
+          "renk": "sari",
+          "boyut": null,
+          "raf": "C3"
+        },
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "Karton kutulardan en yakınını bul",
+      "beklenen": {
+        "tip": "arama",
+        "filtre": {
+          "renk": "karton",
+          "boyut": null,
+          "raf": null
+        },
+        "en_yakin": true
+      }
+    },
+    {
+      "komut": "B1'deki orta boy kutuyu bul",
+      "beklenen": {
+        "tip": "arama",
+        "filtre": {
+          "renk": null,
+          "boyut": "orta",
+          "raf": "B1"
+        },
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "Mavi ve büyük kutuyu göster",
+      "beklenen": {
+        "tip": "arama",
+        "filtre": {
+          "renk": "mavi",
+          "boyut": "buyuk",
+          "raf": null
+        },
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "C1'deki en yakın kırmızı kutuyu bul",
+      "beklenen": {
+        "tip": "arama",
+        "filtre": {
+          "renk": "kirmizi",
+          "boyut": null,
+          "raf": "C1"
+        },
+        "en_yakin": true
+      }
+    },
+    {
+      "komut": "İri kırmızı kutuyu bul",
+      "beklenen": {
+        "tip": "arama",
+        "filtre": {
+          "renk": "kirmizi",
+          "boyut": "buyuk",
+          "raf": null
+        },
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "Mini sarı kutuyu göster",
+      "beklenen": {
+        "tip": "arama",
+        "filtre": {
+          "renk": "sari",
+          "boyut": "kucuk",
+          "raf": null
+        },
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "En yakındaki mavi kutuyu getir",
+      "beklenen": {
+        "tip": "arama",
+        "filtre": {
+          "renk": "mavi",
+          "boyut": null,
+          "raf": null
+        },
+        "en_yakin": true
+      }
+    },
+    {
+      "komut": "Kaç kırmızı kutu var?",
+      "beklenen": {
+        "tip": "sayim",
+        "filtre": {
+          "renk": "kirmizi",
+          "boyut": null,
+          "raf": null
+        },
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "Kaç mavi kutu var?",
+      "beklenen": {
+        "tip": "sayim",
+        "filtre": {
+          "renk": "mavi",
+          "boyut": null,
+          "raf": null
+        },
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "Kaç yeşil kutu var?",
+      "beklenen": {
+        "tip": "sayim",
+        "filtre": {
+          "renk": "yesil",
+          "boyut": null,
+          "raf": null
+        },
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "Kaç sarı kutu var?",
+      "beklenen": {
+        "tip": "sayim",
+        "filtre": {
+          "renk": "sari",
+          "boyut": null,
+          "raf": null
+        },
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "Kaç karton kutu var?",
+      "beklenen": {
+        "tip": "sayim",
+        "filtre": {
+          "renk": "karton",
+          "boyut": null,
+          "raf": null
+        },
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "Kaç büyük kutu var?",
+      "beklenen": {
+        "tip": "sayim",
+        "filtre": {
+          "renk": null,
+          "boyut": "buyuk",
+          "raf": null
+        },
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "Kaç küçük kutu var?",
+      "beklenen": {
+        "tip": "sayim",
+        "filtre": {
+          "renk": null,
+          "boyut": "kucuk",
+          "raf": null
+        },
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "Kaç orta boy kutu var?",
+      "beklenen": {
+        "tip": "sayim",
+        "filtre": {
+          "renk": null,
+          "boyut": "orta",
+          "raf": null
+        },
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "Kaç tane büyük mavi kutu var?",
+      "beklenen": {
+        "tip": "sayim",
+        "filtre": {
+          "renk": "mavi",
+          "boyut": "buyuk",
+          "raf": null
+        },
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "Kaç tane küçük kırmızı kutu var?",
+      "beklenen": {
+        "tip": "sayim",
+        "filtre": {
+          "renk": "kirmizi",
+          "boyut": "kucuk",
+          "raf": null
+        },
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "A1'de kaç kutu var?",
+      "beklenen": {
+        "tip": "sayim",
+        "filtre": {
+          "renk": null,
+          "boyut": null,
+          "raf": "A1"
+        },
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "B2'de kaç kırmızı kutu var?",
+      "beklenen": {
+        "tip": "sayim",
+        "filtre": {
+          "renk": "kirmizi",
+          "boyut": null,
+          "raf": "B2"
+        },
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "C3'te kaç tane kutu var?",
+      "beklenen": {
+        "tip": "sayim",
+        "filtre": {
+          "renk": null,
+          "boyut": null,
+          "raf": "C3"
+        },
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "Toplam kaç yeşil kutu var?",
+      "beklenen": {
+        "tip": "sayim",
+        "filtre": {
+          "renk": "yesil",
+          "boyut": null,
+          "raf": null
+        },
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "A2'de kaç büyük kutu var?",
+      "beklenen": {
+        "tip": "sayim",
+        "filtre": {
+          "renk": null,
+          "boyut": "buyuk",
+          "raf": "A2"
+        },
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "Kaç tane sarı ve küçük kutu var?",
+      "beklenen": {
+        "tip": "sayim",
+        "filtre": {
+          "renk": "sari",
+          "boyut": "kucuk",
+          "raf": null
+        },
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "B1'de kaç tane kutu var?",
+      "beklenen": {
+        "tip": "sayim",
+        "filtre": {
+          "renk": null,
+          "boyut": null,
+          "raf": "B1"
+        },
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "C1'de kaç mavi kutu var?",
+      "beklenen": {
+        "tip": "sayim",
+        "filtre": {
+          "renk": "mavi",
+          "boyut": null,
+          "raf": "C1"
+        },
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "Kaç tane orta boy karton kutu var?",
+      "beklenen": {
+        "tip": "sayim",
+        "filtre": {
+          "renk": "karton",
+          "boyut": "orta",
+          "raf": null
+        },
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "B3'te kaç tane büyük kutu var?",
+      "beklenen": {
+        "tip": "sayim",
+        "filtre": {
+          "renk": null,
+          "boyut": "buyuk",
+          "raf": "B3"
+        },
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "Toplam kaç iri kutu var?",
+      "beklenen": {
+        "tip": "sayim",
+        "filtre": {
+          "renk": null,
+          "boyut": "buyuk",
+          "raf": null
+        },
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "Kaç tane mini kutu var?",
+      "beklenen": {
+        "tip": "sayim",
+        "filtre": {
+          "renk": null,
+          "boyut": "kucuk",
+          "raf": null
+        },
+        "en_yakin": false
+      }
+    },
+    {
+      "komut": "Deponun toplam kutu sayısı kaç?",
+      "beklenen": {
+        "tip": null
+      }
+    }
+  ],
+  "sonuclar": {
+    "anahtar_kelime": [
+      {
+        "komut": "A1'e git",
+        "beklenen": {
+          "tip": "adres",
+          "raf": "A1",
+          "kat": null,
+          "eylem": "git",
+          "katlar": null,
+          "filtre": null,
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "adres",
+          "raf": "A1",
+          "kat": null,
+          "eylem": "git",
+          "katlar": null,
+          "filtre": null,
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "A1'in 2. katına git",
+        "beklenen": {
+          "tip": "adres",
+          "raf": "A1",
+          "kat": 2,
+          "eylem": "git",
+          "katlar": null,
+          "filtre": null,
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "adres",
+          "raf": "A1",
+          "kat": 2,
+          "eylem": "git",
+          "katlar": null,
+          "filtre": null,
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "A2'yi tara",
+        "beklenen": {
+          "tip": "adres",
+          "raf": "A2",
+          "kat": null,
+          "eylem": "tara",
+          "katlar": null,
+          "filtre": null,
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "adres",
+          "raf": "A2",
+          "kat": null,
+          "eylem": "tara",
+          "katlar": null,
+          "filtre": null,
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "A2'nin 1. ve 3. katlarını tara",
+        "beklenen": {
+          "tip": "adres",
+          "raf": "A2",
+          "kat": null,
+          "eylem": "tara",
+          "katlar": [
+            1,
+            3
+          ],
+          "filtre": null,
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "adres",
+          "raf": "A2",
+          "kat": null,
+          "eylem": "tara",
+          "katlar": [
+            1,
+            3
+          ],
+          "filtre": null,
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "A3'e doğru ilerle",
+        "beklenen": {
+          "tip": "adres",
+          "raf": "A3",
+          "kat": null,
+          "eylem": "git",
+          "katlar": null,
+          "filtre": null,
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "adres",
+          "raf": "A3",
+          "kat": null,
+          "eylem": "git",
+          "katlar": null,
+          "filtre": null,
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "A3'te ne var, bir bak",
+        "beklenen": {
+          "tip": "adres",
+          "raf": "A3",
+          "kat": null,
+          "eylem": "tara",
+          "katlar": null,
+          "filtre": null,
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "adres",
+          "raf": "A3",
+          "kat": null,
+          "eylem": "tara",
+          "katlar": null,
+          "filtre": null,
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "B1'e git ve tara",
+        "beklenen": {
+          "tip": "adres",
+          "raf": "B1",
+          "kat": null,
+          "eylem": "tara",
+          "katlar": null,
+          "filtre": null,
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "adres",
+          "raf": "B1",
+          "kat": null,
+          "eylem": "tara",
+          "katlar": null,
+          "filtre": null,
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "B1'in 3. katına git",
+        "beklenen": {
+          "tip": "adres",
+          "raf": "B1",
+          "kat": 3,
+          "eylem": "git",
+          "katlar": null,
+          "filtre": null,
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "adres",
+          "raf": "B1",
+          "kat": 3,
+          "eylem": "git",
+          "katlar": null,
+          "filtre": null,
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "B2'yi incele",
+        "beklenen": {
+          "tip": "adres",
+          "raf": "B2",
+          "kat": null,
+          "eylem": "tara",
+          "katlar": null,
+          "filtre": null,
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "adres",
+          "raf": "B2",
+          "kat": null,
+          "eylem": "tara",
+          "katlar": null,
+          "filtre": null,
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "B2'nin 1. ve 2. katlarını tara",
+        "beklenen": {
+          "tip": "adres",
+          "raf": "B2",
+          "kat": null,
+          "eylem": "tara",
+          "katlar": [
+            1,
+            2
+          ],
+          "filtre": null,
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "adres",
+          "raf": "B2",
+          "kat": null,
+          "eylem": "tara",
+          "katlar": [
+            1,
+            2
+          ],
+          "filtre": null,
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "B3'e git",
+        "beklenen": {
+          "tip": "adres",
+          "raf": "B3",
+          "kat": null,
+          "eylem": "git",
+          "katlar": null,
+          "filtre": null,
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "adres",
+          "raf": "B3",
+          "kat": null,
+          "eylem": "git",
+          "katlar": null,
+          "filtre": null,
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "B3'ün 1. katına git",
+        "beklenen": {
+          "tip": "adres",
+          "raf": "B3",
+          "kat": 1,
+          "eylem": "git",
+          "katlar": null,
+          "filtre": null,
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "adres",
+          "raf": "B3",
+          "kat": 1,
+          "eylem": "git",
+          "katlar": null,
+          "filtre": null,
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "C1'i tara",
+        "beklenen": {
+          "tip": "adres",
+          "raf": "C1",
+          "kat": null,
+          "eylem": "tara",
+          "katlar": null,
+          "filtre": null,
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "adres",
+          "raf": "C1",
+          "kat": null,
+          "eylem": "tara",
+          "katlar": null,
+          "filtre": null,
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "C1'in 2. ve 3. katlarını tara",
+        "beklenen": {
+          "tip": "adres",
+          "raf": "C1",
+          "kat": null,
+          "eylem": "tara",
+          "katlar": [
+            2,
+            3
+          ],
+          "filtre": null,
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "adres",
+          "raf": "C1",
+          "kat": null,
+          "eylem": "tara",
+          "katlar": [
+            2,
+            3
+          ],
+          "filtre": null,
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "C2'ye git",
+        "beklenen": {
+          "tip": "adres",
+          "raf": "C2",
+          "kat": null,
+          "eylem": "git",
+          "katlar": null,
+          "filtre": null,
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "adres",
+          "raf": "C2",
+          "kat": null,
+          "eylem": "git",
+          "katlar": null,
+          "filtre": null,
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "C2'nin 3. katına git",
+        "beklenen": {
+          "tip": "adres",
+          "raf": "C2",
+          "kat": 3,
+          "eylem": "git",
+          "katlar": null,
+          "filtre": null,
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "adres",
+          "raf": "C2",
+          "kat": 3,
+          "eylem": "git",
+          "katlar": null,
+          "filtre": null,
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "C3'e git, kutulara bak",
+        "beklenen": {
+          "tip": "adres",
+          "raf": "C3",
+          "kat": null,
+          "eylem": "tara",
+          "katlar": null,
+          "filtre": null,
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "adres",
+          "raf": "C3",
+          "kat": null,
+          "eylem": "tara",
+          "katlar": null,
+          "filtre": null,
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "C3'ün 1. ve 3. katlarını tara",
+        "beklenen": {
+          "tip": "adres",
+          "raf": "C3",
+          "kat": null,
+          "eylem": "tara",
+          "katlar": [
+            1,
+            3
+          ],
+          "filtre": null,
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "adres",
+          "raf": "C3",
+          "kat": null,
+          "eylem": "tara",
+          "katlar": [
+            1,
+            3
+          ],
+          "filtre": null,
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "A1'i tara",
+        "beklenen": {
+          "tip": "adres",
+          "raf": "A1",
+          "kat": null,
+          "eylem": "tara",
+          "katlar": null,
+          "filtre": null,
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "adres",
+          "raf": "A1",
+          "kat": null,
+          "eylem": "tara",
+          "katlar": null,
+          "filtre": null,
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "A2'nin 2. katına git",
+        "beklenen": {
+          "tip": "adres",
+          "raf": "A2",
+          "kat": 2,
+          "eylem": "git",
+          "katlar": null,
+          "filtre": null,
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "adres",
+          "raf": "A2",
+          "kat": 2,
+          "eylem": "git",
+          "katlar": null,
+          "filtre": null,
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "A1'in üçüncü katına git",
+        "beklenen": {
+          "tip": "adres",
+          "raf": "A1",
+          "kat": 3,
+          "eylem": "git",
+          "katlar": null,
+          "filtre": null,
+          "en_yakin": false
+        },
+        "durum": "YANLIS",
+        "gercek": {
+          "tip": "adres",
+          "raf": "A1",
+          "kat": null,
+          "eylem": "git",
+          "katlar": null,
+          "filtre": null,
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": false,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "B2 tarafına geçelim",
+        "beklenen": {
+          "tip": "adres",
+          "raf": "B2",
+          "kat": null,
+          "eylem": "git",
+          "katlar": null,
+          "filtre": null,
+          "en_yakin": false
+        },
+        "durum": "YANLIS",
+        "gercek": {
+          "tip": "adres",
+          "raf": "B2",
+          "kat": null,
+          "eylem": "tara",
+          "katlar": null,
+          "filtre": null,
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": false,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "C1'de neler var, bir kontrol eder misin",
+        "beklenen": {
+          "tip": "adres",
+          "raf": "C1",
+          "kat": null,
+          "eylem": "tara",
+          "katlar": null,
+          "filtre": null,
+          "en_yakin": false
+        },
+        "durum": "YANLIS",
+        "gercek": {
+          "tip": null
+        },
+        "alan_sonuclari": {
+          "tip": false,
+          "raf": false,
+          "kat": true,
+          "eylem": false,
+          "katlar": true,
+          "en_yakin": false,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "Kırmızı kutuyu bul",
+        "beklenen": {
+          "tip": "arama",
+          "filtre": {
+            "renk": "kirmizi",
+            "boyut": null,
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "arama",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": "kirmizi",
+            "boyut": null,
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "En yakın kırmızı kutuyu bul",
+        "beklenen": {
+          "tip": "arama",
+          "filtre": {
+            "renk": "kirmizi",
+            "boyut": null,
+            "raf": null
+          },
+          "en_yakin": true
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "arama",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": "kirmizi",
+            "boyut": null,
+            "raf": null
+          },
+          "en_yakin": true
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "Mavi kutuyu bul",
+        "beklenen": {
+          "tip": "arama",
+          "filtre": {
+            "renk": "mavi",
+            "boyut": null,
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "arama",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": "mavi",
+            "boyut": null,
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "Yeşil kutuyu bul",
+        "beklenen": {
+          "tip": "arama",
+          "filtre": {
+            "renk": "yesil",
+            "boyut": null,
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "arama",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": "yesil",
+            "boyut": null,
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "Sarı kutuyu bul",
+        "beklenen": {
+          "tip": "arama",
+          "filtre": {
+            "renk": "sari",
+            "boyut": null,
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "arama",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": "sari",
+            "boyut": null,
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "Karton kutuyu bul",
+        "beklenen": {
+          "tip": "arama",
+          "filtre": {
+            "renk": "karton",
+            "boyut": null,
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "arama",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": "karton",
+            "boyut": null,
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "Büyük kutuyu bul",
+        "beklenen": {
+          "tip": "arama",
+          "filtre": {
+            "renk": null,
+            "boyut": "buyuk",
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "arama",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": null,
+            "boyut": "buyuk",
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "Küçük kutuyu bul",
+        "beklenen": {
+          "tip": "arama",
+          "filtre": {
+            "renk": null,
+            "boyut": "kucuk",
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "arama",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": null,
+            "boyut": "kucuk",
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "Orta boy kutuyu bul",
+        "beklenen": {
+          "tip": "arama",
+          "filtre": {
+            "renk": null,
+            "boyut": "orta",
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "arama",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": null,
+            "boyut": "orta",
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "Büyük mavi kutuyu bul",
+        "beklenen": {
+          "tip": "arama",
+          "filtre": {
+            "renk": "mavi",
+            "boyut": "buyuk",
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "arama",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": "mavi",
+            "boyut": "buyuk",
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "Küçük kırmızı kutuyu nerede bulabilirim",
+        "beklenen": {
+          "tip": "arama",
+          "filtre": {
+            "renk": "kirmizi",
+            "boyut": "kucuk",
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "arama",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": "kirmizi",
+            "boyut": "kucuk",
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "B2'deki kırmızı kutuyu bul",
+        "beklenen": {
+          "tip": "arama",
+          "filtre": {
+            "renk": "kirmizi",
+            "boyut": null,
+            "raf": "B2"
+          },
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "arama",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": "kirmizi",
+            "boyut": null,
+            "raf": "B2"
+          },
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "A1'deki büyük kutuyu bul",
+        "beklenen": {
+          "tip": "arama",
+          "filtre": {
+            "renk": null,
+            "boyut": "buyuk",
+            "raf": "A1"
+          },
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "arama",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": null,
+            "boyut": "buyuk",
+            "raf": "A1"
+          },
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "En yakın yeşil kutuyu bul",
+        "beklenen": {
+          "tip": "arama",
+          "filtre": {
+            "renk": "yesil",
+            "boyut": null,
+            "raf": null
+          },
+          "en_yakin": true
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "arama",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": "yesil",
+            "boyut": null,
+            "raf": null
+          },
+          "en_yakin": true
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "En yakın büyük kutuyu göster",
+        "beklenen": {
+          "tip": "arama",
+          "filtre": {
+            "renk": null,
+            "boyut": "buyuk",
+            "raf": null
+          },
+          "en_yakin": true
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "arama",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": null,
+            "boyut": "buyuk",
+            "raf": null
+          },
+          "en_yakin": true
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "C3'teki sarı kutuyu bul",
+        "beklenen": {
+          "tip": "arama",
+          "filtre": {
+            "renk": "sari",
+            "boyut": null,
+            "raf": "C3"
+          },
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "arama",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": "sari",
+            "boyut": null,
+            "raf": "C3"
+          },
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "Karton kutulardan en yakınını bul",
+        "beklenen": {
+          "tip": "arama",
+          "filtre": {
+            "renk": "karton",
+            "boyut": null,
+            "raf": null
+          },
+          "en_yakin": true
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "arama",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": "karton",
+            "boyut": null,
+            "raf": null
+          },
+          "en_yakin": true
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "B1'deki orta boy kutuyu bul",
+        "beklenen": {
+          "tip": "arama",
+          "filtre": {
+            "renk": null,
+            "boyut": "orta",
+            "raf": "B1"
+          },
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "arama",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": null,
+            "boyut": "orta",
+            "raf": "B1"
+          },
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "Mavi ve büyük kutuyu göster",
+        "beklenen": {
+          "tip": "arama",
+          "filtre": {
+            "renk": "mavi",
+            "boyut": "buyuk",
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "arama",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": "mavi",
+            "boyut": "buyuk",
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "C1'deki en yakın kırmızı kutuyu bul",
+        "beklenen": {
+          "tip": "arama",
+          "filtre": {
+            "renk": "kirmizi",
+            "boyut": null,
+            "raf": "C1"
+          },
+          "en_yakin": true
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "arama",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": "kirmizi",
+            "boyut": null,
+            "raf": "C1"
+          },
+          "en_yakin": true
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "İri kırmızı kutuyu bul",
+        "beklenen": {
+          "tip": "arama",
+          "filtre": {
+            "renk": "kirmizi",
+            "boyut": "buyuk",
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "durum": "YANLIS",
+        "gercek": {
+          "tip": "arama",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": "kirmizi",
+            "boyut": null,
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": false,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "Mini sarı kutuyu göster",
+        "beklenen": {
+          "tip": "arama",
+          "filtre": {
+            "renk": "sari",
+            "boyut": "kucuk",
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "durum": "YANLIS",
+        "gercek": {
+          "tip": "arama",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": "sari",
+            "boyut": null,
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": false,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "En yakındaki mavi kutuyu getir",
+        "beklenen": {
+          "tip": "arama",
+          "filtre": {
+            "renk": "mavi",
+            "boyut": null,
+            "raf": null
+          },
+          "en_yakin": true
+        },
+        "durum": "YANLIS",
+        "gercek": {
+          "tip": null
+        },
+        "alan_sonuclari": {
+          "tip": false,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": false,
+          "filtre.renk": false,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "Kaç kırmızı kutu var?",
+        "beklenen": {
+          "tip": "sayim",
+          "filtre": {
+            "renk": "kirmizi",
+            "boyut": null,
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "sayim",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": "kirmizi",
+            "boyut": null,
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "Kaç mavi kutu var?",
+        "beklenen": {
+          "tip": "sayim",
+          "filtre": {
+            "renk": "mavi",
+            "boyut": null,
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "sayim",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": "mavi",
+            "boyut": null,
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "Kaç yeşil kutu var?",
+        "beklenen": {
+          "tip": "sayim",
+          "filtre": {
+            "renk": "yesil",
+            "boyut": null,
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "sayim",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": "yesil",
+            "boyut": null,
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "Kaç sarı kutu var?",
+        "beklenen": {
+          "tip": "sayim",
+          "filtre": {
+            "renk": "sari",
+            "boyut": null,
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "sayim",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": "sari",
+            "boyut": null,
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "Kaç karton kutu var?",
+        "beklenen": {
+          "tip": "sayim",
+          "filtre": {
+            "renk": "karton",
+            "boyut": null,
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "sayim",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": "karton",
+            "boyut": null,
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "Kaç büyük kutu var?",
+        "beklenen": {
+          "tip": "sayim",
+          "filtre": {
+            "renk": null,
+            "boyut": "buyuk",
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "sayim",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": null,
+            "boyut": "buyuk",
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "Kaç küçük kutu var?",
+        "beklenen": {
+          "tip": "sayim",
+          "filtre": {
+            "renk": null,
+            "boyut": "kucuk",
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "sayim",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": null,
+            "boyut": "kucuk",
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "Kaç orta boy kutu var?",
+        "beklenen": {
+          "tip": "sayim",
+          "filtre": {
+            "renk": null,
+            "boyut": "orta",
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "sayim",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": null,
+            "boyut": "orta",
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "Kaç tane büyük mavi kutu var?",
+        "beklenen": {
+          "tip": "sayim",
+          "filtre": {
+            "renk": "mavi",
+            "boyut": "buyuk",
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "sayim",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": "mavi",
+            "boyut": "buyuk",
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "Kaç tane küçük kırmızı kutu var?",
+        "beklenen": {
+          "tip": "sayim",
+          "filtre": {
+            "renk": "kirmizi",
+            "boyut": "kucuk",
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "sayim",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": "kirmizi",
+            "boyut": "kucuk",
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "A1'de kaç kutu var?",
+        "beklenen": {
+          "tip": "sayim",
+          "filtre": {
+            "renk": null,
+            "boyut": null,
+            "raf": "A1"
+          },
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "sayim",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": null,
+            "boyut": null,
+            "raf": "A1"
+          },
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "B2'de kaç kırmızı kutu var?",
+        "beklenen": {
+          "tip": "sayim",
+          "filtre": {
+            "renk": "kirmizi",
+            "boyut": null,
+            "raf": "B2"
+          },
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "sayim",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": "kirmizi",
+            "boyut": null,
+            "raf": "B2"
+          },
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "C3'te kaç tane kutu var?",
+        "beklenen": {
+          "tip": "sayim",
+          "filtre": {
+            "renk": null,
+            "boyut": null,
+            "raf": "C3"
+          },
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "sayim",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": null,
+            "boyut": null,
+            "raf": "C3"
+          },
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "Toplam kaç yeşil kutu var?",
+        "beklenen": {
+          "tip": "sayim",
+          "filtre": {
+            "renk": "yesil",
+            "boyut": null,
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "sayim",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": "yesil",
+            "boyut": null,
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "A2'de kaç büyük kutu var?",
+        "beklenen": {
+          "tip": "sayim",
+          "filtre": {
+            "renk": null,
+            "boyut": "buyuk",
+            "raf": "A2"
+          },
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "sayim",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": null,
+            "boyut": "buyuk",
+            "raf": "A2"
+          },
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "Kaç tane sarı ve küçük kutu var?",
+        "beklenen": {
+          "tip": "sayim",
+          "filtre": {
+            "renk": "sari",
+            "boyut": "kucuk",
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "sayim",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": "sari",
+            "boyut": "kucuk",
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "B1'de kaç tane kutu var?",
+        "beklenen": {
+          "tip": "sayim",
+          "filtre": {
+            "renk": null,
+            "boyut": null,
+            "raf": "B1"
+          },
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "sayim",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": null,
+            "boyut": null,
+            "raf": "B1"
+          },
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "C1'de kaç mavi kutu var?",
+        "beklenen": {
+          "tip": "sayim",
+          "filtre": {
+            "renk": "mavi",
+            "boyut": null,
+            "raf": "C1"
+          },
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "sayim",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": "mavi",
+            "boyut": null,
+            "raf": "C1"
+          },
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "Kaç tane orta boy karton kutu var?",
+        "beklenen": {
+          "tip": "sayim",
+          "filtre": {
+            "renk": "karton",
+            "boyut": "orta",
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "sayim",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": "karton",
+            "boyut": "orta",
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "B3'te kaç tane büyük kutu var?",
+        "beklenen": {
+          "tip": "sayim",
+          "filtre": {
+            "renk": null,
+            "boyut": "buyuk",
+            "raf": "B3"
+          },
+          "en_yakin": false
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": "sayim",
+          "raf": null,
+          "kat": null,
+          "eylem": null,
+          "katlar": null,
+          "filtre": {
+            "renk": null,
+            "boyut": "buyuk",
+            "raf": "B3"
+          },
+          "en_yakin": false
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "Toplam kaç iri kutu var?",
+        "beklenen": {
+          "tip": "sayim",
+          "filtre": {
+            "renk": null,
+            "boyut": "buyuk",
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "durum": "YANLIS",
+        "gercek": {
+          "tip": null
+        },
+        "alan_sonuclari": {
+          "tip": false,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": false,
+          "filtre.renk": true,
+          "filtre.boyut": false,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "Kaç tane mini kutu var?",
+        "beklenen": {
+          "tip": "sayim",
+          "filtre": {
+            "renk": null,
+            "boyut": "kucuk",
+            "raf": null
+          },
+          "en_yakin": false
+        },
+        "durum": "YANLIS",
+        "gercek": {
+          "tip": null
+        },
+        "alan_sonuclari": {
+          "tip": false,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": false,
+          "filtre.renk": true,
+          "filtre.boyut": false,
+          "filtre.raf": true
+        }
+      },
+      {
+        "komut": "Deponun toplam kutu sayısı kaç?",
+        "beklenen": {
+          "tip": null
+        },
+        "durum": "DOGRU",
+        "gercek": {
+          "tip": null
+        },
+        "alan_sonuclari": {
+          "tip": true,
+          "raf": true,
+          "kat": true,
+          "eylem": true,
+          "katlar": true,
+          "en_yakin": true,
+          "filtre.renk": true,
+          "filtre.boyut": true,
+          "filtre.raf": true
+        }
+      }
+    ]
+  }
+}

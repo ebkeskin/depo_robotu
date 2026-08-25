@@ -1219,6 +1219,63 @@ sorusuna (§4.6) ilk nicel cevap. Geçerlilik sınırı için Sprint 5
 Madde 5'teki BİLİNEN SINIR notuna bakın (sadece rafa kare duruşta,
 çizgi uydurma değil).
 
+### Sonuç 3 — Sorgu ayrıştırma doğruluğu: anahtar-kelime taban çizgisi (25 Ağustos 2026, LLM tarafı KOTA nedeniyle YARIM)
+
+**Kaynak:** Yeni oluşturulan `llm_servis/dogruluk_seti.json` (69 elle
+etiketlenmiş komut: 23 adres / 23 arama / 22 sayım + 1 şema-dışı sınır
+testi), `llm_servis/anahtar_kelime_cozumleyici.py` (basit substring/regex
+tabanlı ayrıştırıcı, LLM'e göre BİLEREK ilkel tutuldu) ile `llm_servis/
+dogruluk_olcum.py --sadece anahtar_kelime` üzerinden koşturuldu.
+
+**Anahtar-kelime sonucu: 61/69 (%88.4) tam eşleşme.**
+
+| Tip | Doğruluk |
+|---|---|
+| adres | 20/23 (%87.0) |
+| arama | 20/23 (%87.0) |
+| sayım | 20/22 (%90.9) |
+
+8 hatanın tamamı, kasıtlı olarak zorlaştırılmış 9 "hard" örnekten
+8'inde çıktı: sözlükte olmayan eş anlamlı kelime ("iri"/"mini" →
+büyük/küçük eşlemesi yok, "getir" → arama tetikleyici listesinde yok),
+dolaylı niyet ("B2 tarafına geçelim" → "git" fiili geçmiyor), sözcük
+biçimli sayı ("üçüncü katına git" → "3." kalıbı yok). Geri kalan 60
+kanonik/temiz ifadeli komutta neredeyse sıfır hata — anahtar-kelime
+yaklaşımının **temiz, öngörülebilir cümlelerde** şaşırtıcı derecede iyi,
+ama **kelime dağarcığı dışına çıkan her ifadede kırılgan** olduğunu
+gösteriyor (tam olarak LLM'in vaat ettiği kazanç alanı).
+
+**LLM tarafı (gerçek Gemini API) HENÜZ ÖLÇÜLEMEDİ — engel: günlük
+kota.** `gemini-3.6-flash` ücretsiz katmanının kotası
+(`GenerateRequestsPerDayPerProjectPerModel-FreeTier`, limit=20/**gün**,
+dakikalık değil) bu ölçümden önce tükenmiş durumda; 69 komuttan hiçbiri
+ilk denemeden itibaren başarılı olamadı, tamamı 429 döndü. AI Studio'nun
+hesaba özel kota sayfası (`aistudio.google.com/rate-limit`) kimlik
+doğrulaması gerektirdiği için buradan kontrol edilemedi; genel/herkese
+açık dokümantasyon sayfası artık sabit RPD tablosu içermiyor, hesaba
+özel sayfaya yönlendiriyor.
+
+**Yan bulgu (bu ölçüm sırasında keşfedilen, düzeltilen gerçek bug):**
+`llm_saglayici.py`, alttaki HTTP istemcisinin attığı `httpx.ReadTimeout`'u
+yakalamıyordu (builtin `TimeoutError`'dan miras almıyor) — 20s zaman
+aşımı dolduğunda `LLMHatasi`'ye sarılmadan ham exception sızıp programı
+çökertiyordu. `except (TimeoutError, httpx.TimeoutException)` ile
+düzeltildi, `requirements.txt`'ye `httpx` eklendi,
+`test_komut_cozumleyici.py`'nin 16 testi bu değişiklikten sonra da
+geçmeye devam ediyor.
+
+**Ayrıca düzeltilen güvenlik sorunu (aynı oturumda):**
+`llm_servis/.env.example` içine yanlışlıkla commit edilmiş gerçek bir
+Google AI Studio API anahtarı bulundu, placeholder ile değiştirildi.
+Anahtarın kendisinin Google AI Studio'dan iptali kullanıcıya bırakıldı
+(kod düzeltmesi geçmişte sızmış anahtarı geçersiz kılmaz).
+
+**Sonraki adım:** kota sıfırlanınca (Türkiye saatiyle tahmini ~10-11
+civarı, Google'ın gece yarısı Pasifik saatiyle sıfırlama alışkanlığına
+göre) `python3 dogruluk_olcum.py --bekleme 6` (yöntem bayrağı olmadan,
+her iki yöntemi de tek seferde koşturup yan yana tablo üretir) ile tam
+69 komutluk LLM ölçümü tekrar denenecek.
+
 **Diğer:** hata yönetimi, README, mimari diyagramı, `NOTLAR.md` → Word,
 demo videosu, sunum.
 
