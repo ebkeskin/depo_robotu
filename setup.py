@@ -42,6 +42,7 @@ setup(
             'konum_yakala = depo_robotu.konum_yakala:main',
             'navigasyon_koprusu = depo_robotu.navigasyon_koprusu:main',
             'oracle_algi_karsilastirma = depo_robotu.oracle_algi_karsilastirma:main',
+            'coklu_raf_tarama_testi = depo_robotu.coklu_raf_tarama_testi:main',
         ],
     },
 )
