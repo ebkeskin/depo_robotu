@@ -1460,7 +1460,7 @@ kendi belgelediği "mesafe = sabit standoff mesafesi (canlı LIDAR değil)"
 varsayımı da geçerli — Tablo D'deki hatanın bir kısmı bu ÖNCEDEN
 BİLİNEN sapmadan geliyor, yeni bir hata değil.
 
-### Sonuç 5 — Hata yönetimi gözden geçirmesi (26 Ağustos 2026, TAMAMLANDI)
+### Sonuç 5 — Hata yönetimi gözden geçirmesi (TAMAMLANDI)
 
 **Kapsam:** yeni özellik değil, mevcut hata yollarının eksiksizliğini
 doğrulama — `llm_servis` (`komut_cozumleyici.py`, `llm_saglayici.py`,

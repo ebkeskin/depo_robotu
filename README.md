@@ -163,8 +163,7 @@ cp .env.example .env
 `.env` içine **`GROQ_API_KEY=...`** ekleyin — production'da kullanılan
 sağlayıcı budur (`openai/gpt-oss-120b` modeli). `GOOGLE_API_KEY` (Gemini)
 dosyada bilerek bırakıldı ama artık kullanılmıyor; günlük kota limitine
-(20 istek/gün, ücretsiz katman) takıldığı için 25 Ağustos 2026'da Groq'a
-geçildi.
+(20 istek/gün, ücretsiz katman) takıldığı için Groq'a geçildi.
 
 ```bash
 uvicorn main:app --reload --port 8000

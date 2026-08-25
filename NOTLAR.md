@@ -266,7 +266,7 @@ ps aux | grep -c "gz sim"   # küçük bir sayı dönmeli
 **Alışkanlık**
 Garip bir davranış görüldüğünde ilk iş bu temizliği yapmak.
 
-**Ek not (24 Ağustos 2026, Sprint 5 madde 6 test oturumu):** `tarama_kontrol`
+**Ek not (Sprint 5 madde 6 test oturumu):** `tarama_kontrol`
 listeye sonradan eklendi — `navigasyon_koprusu.py` onu subprocess olarak
 başlatıyor (bkz. modülünün kendi docstring'i), ve `navigasyon_koprusu`'nün
 kendisi `kill -9` ile (veya sinyalsiz `pkill`) durdurulursa çocuk süreç
@@ -534,8 +534,8 @@ edilmemeli. Bkz. SORUN 10 — aynı `s`/boşluk force-stop mekanizması.
 `worlds/depo.sdf`) kaynakta düzenlenip `colcon build --symlink-install`
 çalıştırılmadan test edilirse, Nav2/node'lar **eski değeri** kullanmaya
 devam eder — hata vermez, davranış sessizce "değişmemiş" görünür. Bu,
-`desired_linear_vel` hız ayarında bir "regresyon" şüphesine yol açmıştı
-(2026-08-20); teşhis sonucu kaynak ile install kopyası her ikisi de aynı
+`desired_linear_vel` hız ayarında bir "regresyon" şüphesine yol açmıştı;
+teşhis sonucu kaynak ile install kopyası her ikisi de aynı
 (`1.0`) çıktı — o an aktif bir sorun yoktu, ama mekanizma gerçek.
 
 **Sebep**
@@ -547,7 +547,7 @@ kopyalanıyor**, symlink değil (`ls -la
 + `data_files` kombinasyonunda bilinen bir sınırlama, bu projeye özgü bir
 hata değil.
 
-> **Düzeltme (2026-08-20, SORUN 16):** Bu SORUN'un ilk yazımında burada
+> **Düzeltme (SORUN 16):** Bu SORUN'un ilk yazımında burada
 > "`--symlink-install` bayrağı Python modüllerini symlink'liyor, sadece
 > `data_files` kopyalanıyor" deniyordu — bu YANLIŞ çıktı. Bu ortamda
 > (setuptools 58.2.0) Python modülleri de symlink değil kopya. Detay:
@@ -724,12 +724,10 @@ Derlemeden sonra **yeni terminal** açılmalı (ortam tazelensin).
 
 ## Açık konular
 
-- [ ] Yeni GROQ API anahtarı — `.env` içinde tutulacak, `.bashrc`'ye YAZILMAYACAK, `.gitignore`'a eklenecek
+- [x] Yeni GROQ API anahtarı — `.env` içinde tutuluyor, `.bashrc`'ye yazılmadı, `.gitignore`'da. Groq geçişiyle tamamlandı (bkz. PROJE_DOSYASI.md Sprint 6 Sonuç 3).
 - [ ] Takım kaptanına `.bashrc` İDA bloğu düzenlemesi bildirilecek (`GZ_SIM_RESOURCE_PATH` birleştirmesi)
-- [ ] Laptop bakımı (toz + termal macun) — ~10 gün içinde
-- [ ] LLM sağlayıcı araştırması (Groq / OpenRouter / Google AI Studio) — rate limit ve ücretsiz kota kriterleri
-- [ ] Sağlayıcı çağrısı tek bir fonksiyonda toplanmalı (geçiş kolaylığı)
-- [ ] Sprint 1 demo videosu (Ubuntu ekran kaydı: `Ctrl+Alt+Shift+R`)
+- [x] LLM sağlayıcı araştırması (Groq / OpenRouter / Google AI Studio) — 3 model canlı karşılaştırıldı, Groq (`openai/gpt-oss-120b`) seçildi (bkz. `llm_saglayici.py` modül docstring'i).
+- [x] Sağlayıcı çağrısı tek fonksiyonda toplandı — `llm_saglayici.py`/`llm_cagir`. Bu sayede Gemini→Groq geçişi diğer hiçbir dosyaya dokunmadan yapılabildi.
 - [ ] Word belgesi bu notlardan güncellenecek
 - [ ] `kutu_tespit.py`'ye mavi kutu/raf direği ayrımı için `piksel_kat_hesapla`'nın
       hesapladığı yanal (raf boyunca) konuma göre kenar-bandı filtresi eklendi
@@ -798,7 +796,7 @@ yanal olarak da raf genişliği içinde kalıyor. Kod değişikliği yapılmadı
 kapsam dışı bırakıldı (derinlik ayrımı gerektirir, `kutu_tespit.py`'nin tek
 skaler LIDAR mesafesi mimarisinin ötesinde bir değişiklik ister).
 
-**Ek not (23 Ağustos 2026, 9 raf uçtan uca perception testi) — düşük öncelik:**
+**Ek not (9 raf uçtan uca perception testi) — düşük öncelik:**
 A3 ve C3'te kat3'te 1'er gerçek kutu kaçtı (A3: 3 gerekli/2 tespit, C3: 4
 gerekli/3 tespit) — hem ideal hem ölçülen-yaw geçişinde AYNI kayıp tekrar
 etti, yani yaw sapmasından bağımsız (bkz. PROJE_DOSYASI.md §7 2E). B3'te de
@@ -808,7 +806,7 @@ araştırılmadı, düşük öncelikli.
 
 ---
 
-## SORUN 18 — Nav2 planlayıcısı spawn noktası civarında sistematik olarak başarısız oluyor (24 Ağustos 2026, 4+ tekrar; KÖK SEBEP BULUNDU 25 Ağustos 2026)
+## SORUN 18 — Nav2 planlayıcısı spawn noktası civarında sistematik olarak başarısız oluyor (4'ten fazla kez tekrarlandı — kök sebep sonradan bulundu)
 
 **Belirti**
 `GridBased: failed to create plan` / `[compute_path_to_pose] Aborting handle`
@@ -820,7 +818,7 @@ kayıtlı y-sınırının (-1.21) DIŞINDA kalıyor — robot spawn'dan itibaren
 süre (kuzeye, y>-1.21'e doğru ilerleyene kadar) costmap'in "görüş alanı"
 dışında sayılıyor.
 
-**Görüldüğü oturumlar (bu konuşma içinde, 24 Ağustos 2026)**
+**Görüldüğü oturumlar (bu konuşma içinde)**
 - Sprint 5 ek özellik Madde 1/3 test oturumu — AMCL, `/initialpose` doğru
   verilmesine rağmen yanlış bir map-frame pozuna (simetrik-grid riski)
   kilitlendi; kilitlenmeden önce aynı "out of map bounds" uyarıları görüldü.
@@ -841,7 +839,7 @@ Bu artık rastgele bir flakiness değil, **yeniden üretilebilir bir kalıp** �
 canlı Nav2 doğrulaması gerektiren her yeni özellik bu yüzden tekrar tekrar
 engelleniyor.
 
-**KÖK SEBEP BULUNDU (25 Ağustos 2026) — harita spawn/kapı bölgesini
+**KÖK SEBEP BULUNDU — harita spawn/kapı bölgesini
 kapsamıyor**
 `maps/depo_haritasi.yaml` ve `.pgm` dosyaları doğrudan incelenerek doğrulandı:
 
