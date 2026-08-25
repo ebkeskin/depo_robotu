@@ -158,13 +158,21 @@ def llm_cagir(sistem_talimati: str, kullanici_metni: str) -> LLMYaniti:
         raise LLMKotaHatasi(f"Groq kota/rate limit asildi: {e}") from e
     except APITimeoutError as e:
         raise LLMHatasi(f"Groq zaman asimi ({_ZAMAN_ASIMI_SN}s): {e}") from e
-    except httpx.TimeoutException as e:
+    except httpx.HTTPError as e:
         # Gemini gecisinde ogrenilen ders (bkz. PROJE_DOSYASI.md Sprint 6
         # Sonuc 3): alttaki httpx istemcisinin attigi ReadTimeout/vb.
-        # exception'lar SDK'nin kendi APITimeoutError'una HER ZAMAN
-        # sarilmayabilir -- ayrica yakalanmazsa LLMHatasi'ye donusmeden
-        # sizip programi cokertir. Ayni savunma burada da uygulandi.
-        raise LLMHatasi(f"Groq zaman asimi (httpx, {_ZAMAN_ASIMI_SN}s): {e}") from e
+        # exception'lar SDK'nin kendi APITimeoutError/APIConnectionError'una
+        # HER ZAMAN sarilmayabilir -- ayrica yakalanmazsa LLMHatasi'ye
+        # donusmeden sizip cagirana ciplak sekilde ulasir (main.py'de
+        # yakalanmayan bir exception FastAPI'ye 500 olarak duser, guzel
+        # Turkce hata mesaji yerine). Sprint 6'da bu SADECE
+        # TimeoutException icin bulunup duzeltilmisti (25 Agustos 2026,
+        # hata yonetimi gozden gecirmesi); ayni riskin ConnectError/
+        # ReadError/RemoteProtocolError gibi diger httpx.HTTPError alt
+        # siniflari icin de gecerli oldugu fark edilip savunma
+        # httpx.HTTPError'a (TUM httpx hatalarinin ortak ust sinifi)
+        # genisletildi (26 Agustos 2026).
+        raise LLMHatasi(f"Groq ag/istek hatasi (httpx, {_ZAMAN_ASIMI_SN}s zaman asimi ile): {e}") from e
     except APIConnectionError as e:
         raise LLMHatasi(f"Groq baglanti hatasi: {e}") from e
     except APIStatusError as e:

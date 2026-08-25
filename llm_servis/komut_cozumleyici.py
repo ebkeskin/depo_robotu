@@ -115,9 +115,22 @@ def _llm_json_ayikla(ham_metin: str) -> dict:
             metin = metin[4:]
         metin = metin.strip()
     try:
-        return json.loads(metin)
+        sonuc = json.loads(metin)
     except json.JSONDecodeError as e:
         raise LLMYanitHatasi(f"LLM gecerli JSON dondurmedi: {e}. Ham metin: {ham_metin[:200]!r}") from e
+    # Hata yonetimi gozden gecirmesi (26 Agustos 2026): json.loads GECERLI
+    # ama dict-OLMAYAN bir deger (null/liste/sayi/string/bool) dondurebilir
+    # -- bu durumda cagiran taraflar (ham_dogrula, komut_coz) `ham.get(...)`
+    # cagirdiginda ciplak bir AttributeError firlar (dogrulandi). Groq'un
+    # json_object modu ust seviyede bir object garanti etse de, proje zaten
+    # bir kez ("en_yakin: null") bu tur garantilerin tam guvenilir
+    # olmadigini gordu -- bu yuzden burada ayrica dogrulaniyor.
+    if not isinstance(sonuc, dict):
+        raise LLMYanitHatasi(
+            f"LLM JSON dondurdu ama bir nesne (obje) degil: {type(sonuc).__name__}. "
+            f"Ham metin: {ham_metin[:200]!r}"
+        )
+    return sonuc
 
 
 def ham_dogrula(ham: dict) -> SorguSonucu:

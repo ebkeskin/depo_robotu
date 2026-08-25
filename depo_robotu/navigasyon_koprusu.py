@@ -730,8 +730,15 @@ class NavigasyonKoprusu(Node):
     def _navigasyon_tamamlandi(self, future) -> None:
         durum = future.result().status
         basarili = durum == GoalStatus.STATUS_SUCCEEDED
-        self.get_logger().info(
-            f"Navigasyon sonucu: {'BASARILI' if basarili else 'BASARISIZ'} (status={durum})")
+        # Hata yonetimi gozden gecirmesi (26 Agustos 2026): basarisiz
+        # (ABORTED/CANCELED/vb.) bir navigasyon eskiden basariyla AYNI
+        # (info) seviyede logluyordu -- sadece mesaj metninden ayirt
+        # edilebiliyordu, WARN+ seviyesine gore filtrelenen bir log
+        # izlemede tamamen kayboluyordu.
+        if basarili:
+            self.get_logger().info(f'Navigasyon sonucu: BASARILI (status={durum})')
+        else:
+            self.get_logger().warn(f'Navigasyon sonucu: BASARISIZ (status={durum})')
         # Madde 6: navigasyon (basarili/basarisiz/iptal, farketmez) bitti --
         # artik iptal edilecek bir sey yok.
         self._son_goal_handle = None

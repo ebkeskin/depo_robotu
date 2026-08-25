@@ -1107,7 +1107,7 @@ ve önünde başka bir engel olmadığında geçerli; gerçek bir çizgi uydurma
 olmadığı için yamuk duruş veya yandaki bir direk/kutu bu hatayı çok daha
 büyütebilir (bkz. yukarıdaki BİLİNEN SINIR notu).
 
-## Sprint 6 — Ölçüm, cilalama, sunum 🔄 DEVAM EDİYOR (4 sonuç: 2 mevcut veriyle, 2 yeni canlı testle)
+## Sprint 6 — Ölçüm, cilalama, sunum 🔄 DEVAM EDİYOR (5 sonuç: 2 mevcut veriyle, 3 yeni canlı testle/incelemeyle)
 
 > **ÖNCELİK UYARISI: Sprint 6'ya başlamadan önce (veya
 > en azından paralelde) `NOTLAR.md` SORUN 18 ele alınmalı.** SORUN 18
@@ -1356,7 +1356,8 @@ testi (Madde 1/3/5/6 davranışları) — SORUN 18 açık olduğu için Nav2
 gerektirmeyen kısımlar (Madde 4/5/6'nın llm_servis'e hiç gitmeyen
 regex akışları) önce, Nav2 gerektirenler SORUN 18 çözülünce.
 
-**Diğer:** hata yönetimi, README, mimari diyagramı, `NOTLAR.md` → Word,
+**Diğer:** ~~hata yönetimi~~ (✅ Sonuç 5), ~~README~~ ✅, ~~mimari
+diyagramı~~ ✅, `NOTLAR.md` → Word,
 demo videosu, sunum.
 
 ### Sonuç 4 — Tilt vs sabit kamera baseline'ı (TAMAMLANDI, canlı test)
@@ -1458,6 +1459,69 @@ yerine en yakın varsayıma dayanıyor. Ayrıca `konum_donusum.py`'nin
 kendi belgelediği "mesafe = sabit standoff mesafesi (canlı LIDAR değil)"
 varsayımı da geçerli — Tablo D'deki hatanın bir kısmı bu ÖNCEDEN
 BİLİNEN sapmadan geliyor, yeni bir hata değil.
+
+### Sonuç 5 — Hata yönetimi gözden geçirmesi (26 Ağustos 2026, TAMAMLANDI)
+
+**Kapsam:** yeni özellik değil, mevcut hata yollarının eksiksizliğini
+doğrulama — `llm_servis` (`komut_cozumleyici.py`, `llm_saglayici.py`,
+`main.py`) ve `navigasyon_koprusu.py`. Kontrol edilen ve **sorun
+bulunmayan** noktalar: sıfır eşleşme mesajı, geçersiz raf doğrulaması
+(pydantic), ikinci tarama isteğinin reddi (WARN), bilinmeyen raf adı
+(ERROR), ve — özellikle şüpheli görülen — **`navigasyon_koprusu.py`'nin
+`llm_servis`'e HTTP isteği**: `except requests.RequestException`
+`ConnectionError`/`Timeout`/`raise_for_status()`'un `HTTPError`'ını
+kapsıyor; kurulu `requests` sürümü (2.34.1) doğrulandı,
+`JSONDecodeError` de bu sürümde `RequestException`'ın alt sınıfı
+(2.27+) — yani `llm_servis` kapalıyken veya bozuk cevap dönerken node
+ÇÖKMÜYOR, sadece ERROR logluyor. Ayrıca 4 dosyanın tamamında sessizce
+yutulan (`except: pass` türü) bir exception **bulunamadı**.
+
+3 gerçek boşluk bulunup düzeltildi:
+
+**A) `llm_saglayici.py`** — `except httpx.TimeoutException` sadece
+zaman aşımını kapsıyordu; Groq SDK'sının bazı httpx hatalarını kendi
+`APIConnectionError`'ına sarmayabildiği (Sprint 6 Sonuç 3'te
+`TimeoutException` için zaten bir kez yaşanan) risk, `ConnectError` /
+`ReadError` / `RemoteProtocolError` gibi diğer httpx hataları için de
+geçerliydi. Düzeltme: `except httpx.HTTPError` (tüm httpx hatalarının
+ortak üst sınıfı) ile genişletildi. Doğrulama: `httpx.HTTPError`'ın
+`TimeoutException`/`ConnectError`/`ReadError`'ın hepsinin üst sınıfı
+olduğu kontrol edildi, modül hatasız import edildi.
+
+**B) `komut_cozumleyici.py`** — `_llm_json_ayikla`, `json.loads`
+sonrası dönen değerin HER ZAMAN dict olduğunu varsayıyordu.
+Ampirik olarak doğrulandı: LLM geçerli JSON ama dict-olmayan bir üst
+seviye (`null`/`[]`/`"metin"`/`42`/`true`) dönerse, `ham.get("tip")`
+çıplak bir `AttributeError` fırlatıyordu (hiçbir yerde yakalanmıyordu —
+etki sınırlıydı, FastAPI 500 döner ve `navigasyon_koprusu.py` bunu
+`raise_for_status()` üzerinden zaten yakalar, ama kullanıcı o istekte
+güzel Türkçe mesaj yerine çıplak 500 görüyordu). Düzeltme:
+`isinstance(sonuc, dict)` kontrolü eklenip değilse `LLMYanitHatasi`
+fırlatılıyor. Doğrulama: mevcut 16 testin (`test_komut_cozumleyici.py`)
+hepsi geçti; ayrıca 5 sorunlu örnek (`null`,`[]`,`"merhaba"`,`42`,`true`)
+elle test edilip hepsinin artık düzgün `LLMYanitHatasi`'ye döndüğü,
+normal `{"tip": null}` durumunun ETKİLENMEDİĞİ doğrulandı.
+
+**C) `navigasyon_koprusu.py`** — `_navigasyon_tamamlandi`, başarılı VE
+başarısız (ABORTED/CANCELED/vb.) navigasyonu AYNI (`info`) log
+seviyesinde yazıyordu — sadece mesaj metninden ayırt edilebiliyordu,
+WARN+ seviyesine göre filtrelenen bir log izlemede navigasyon
+başarısızlığı tamamen kaybolurdu. Düzeltme: başarılıysa `.info()`,
+başarısızsa `.warn()`. Doğrulama: dosya ROS ortamında hatasız import
+edildi, değişen mantık elle izlendi (bu iki dosya için otomatik test
+yok — `llm_saglayici.py`/`navigasyon_koprusu.py` henüz test dosyasına
+sahip değil, bu Sprint 6'nın "Diğer" kovasındaki açık bir madde olarak
+kalıyor).
+
+**Netleştirme (Groq'un `en_yakin:null` tuhaflığıyla ilişkisi):** o
+sorun bir ÇÖKME riski DEĞİLDİ — pydantic'in genel
+`except (ValidationError, ValueError)` yakalaması, şemaya uyan bir JSON
+içindeki HERHANGİ bir alanın null/yanlış tip gelmesini zaten güvenle
+karşılıyor. Groq'a eklenen sistem-mesajı hatırlatması bir DOĞRULUK
+iyileştirmesiydi (geçerli bir sorgunun yanlışlıkla reddedilmesini
+önledi), bir çökme düzeltmesi değil. Gerçek çökme riski sadece JSON'un
+en üst seviyede dict OLMAMASI durumuydu (Bulgu B) — pydantic'in devreye
+bile giremediği tek nokta.
 
 ## Sprint 7 (opsiyonel) — Bonus ☐
 
