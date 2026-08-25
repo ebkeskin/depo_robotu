@@ -36,6 +36,8 @@ Kullanim:
 
 import json
 import math
+import os
+import signal
 import subprocess
 import time
 from pathlib import Path
@@ -118,6 +120,26 @@ class CokluRafTaramaTesti(Node):
             return
         self._son_rapor = rapor
 
+    def _tarama_procu_sonlandir(self) -> None:
+        """start_new_session=True ile acilan surec GRUBUNUN tamamini oldurur
+        (bkz. _raf_tara'daki not) -- tek basina proc.terminate() torun
+        tarama_kontrol node'unu yetim birakiyordu."""
+        proc = self._tarama_proc
+        if proc is None or proc.poll() is not None:
+            return
+        try:
+            pgid = os.getpgid(proc.pid)
+        except ProcessLookupError:
+            return
+        try:
+            os.killpg(pgid, signal.SIGTERM)
+            proc.wait(timeout=5.0)
+        except subprocess.TimeoutExpired:
+            os.killpg(pgid, signal.SIGKILL)
+            proc.wait(timeout=5.0)
+        except ProcessLookupError:
+            pass
+
     def _raf_tara(self, raf: str) -> dict:
         bilgi = self.envanter.get('raf_konumlari', {}).get(raf)
         if bilgi is None:
@@ -131,20 +153,26 @@ class CokluRafTaramaTesti(Node):
         time.sleep(1.0)  # fizigin/LIDAR'in yerlesmesi icin (oracle_algi_karsilastirma.py ile AYNI)
 
         # navigasyon_koprusu.py'nin _tarama_baslat'i ile AYNI komut.
+        # start_new_session=True: 'ros2 run' KENDI ICINDE subprocess.Popen ile
+        # bir TORUN surec baslatiyor (exec-replace DEGIL, dogrulandi:
+        # ros2run.api.run_executable kaynagi) -- bu yuzden bize sadece
+        # 'ros2 run' PID'i doner, gercek tarama_kontrol PID'i degil. Ayri bir
+        # sureç grubu acip grubun TAMAMINI (_tarama_procu_sonlandir'da)
+        # oldurmezsek, torun yetim kalip ARKA PLANDA CALISMAYA DEVAM EDER
+        # (canli testte boyle oldugu 'ros2 node list' ile dogrulandi -- 9
+        # rafin hepsinde yetim tarama_kontrol node'u kaldi).
         komut = ['ros2', 'run', 'depo_robotu', 'tarama_kontrol',
                  '--ros-args', '-p', f'raf:={raf}']
         self._son_rapor = None
         self._beklenen_raf = raf
-        self._tarama_proc = subprocess.Popen(komut)
+        self._tarama_proc = subprocess.Popen(komut, start_new_session=True)
 
         baslangic = time.monotonic()
         while self._son_rapor is None and time.monotonic() - baslangic < TARAMA_ZAMAN_ASIMI_SN:
             rclpy.spin_once(self, timeout_sec=0.2)
         sure = time.monotonic() - baslangic
 
-        if self._tarama_proc.poll() is None:
-            self._tarama_proc.terminate()
-            self._tarama_proc.wait(timeout=5.0)
+        self._tarama_procu_sonlandir()
         self._beklenen_raf = None
 
         if self._son_rapor is None:
@@ -195,8 +223,7 @@ def main(args=None):
     except KeyboardInterrupt:
         pass
     finally:
-        if dugum._tarama_proc is not None and dugum._tarama_proc.poll() is None:
-            dugum._tarama_proc.terminate()
+        dugum._tarama_procu_sonlandir()
     dugum.destroy_node()
     rclpy.shutdown()
 

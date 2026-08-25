@@ -1103,7 +1103,7 @@ ve önünde başka bir engel olmadığında geçerli; gerçek bir çizgi uydurma
 olmadığı için yamuk duruş veya yandaki bir direk/kutu bu hatayı çok daha
 büyütebilir (bkz. yukarıdaki BİLİNEN SINIR notu).
 
-## Sprint 6 — Ölçüm, cilalama, sunum 🔄 DEVAM EDİYOR (25 Ağustos 2026, 2 metrik mevcut veriyle hesaplandı)
+## Sprint 6 — Ölçüm, cilalama, sunum 🔄 DEVAM EDİYOR (25 Ağustos 2026, 4 sonuç: 2 mevcut veriyle, 2 yeni canlı testle)
 
 > **ÖNCELİK UYARISI (24 Ağustos 2026): Sprint 6'ya başlamadan önce (veya
 > en azından paralelde) `NOTLAR.md` SORUN 18 ele alınmalı.** SORUN 18
@@ -1352,6 +1352,106 @@ regex akışları) önce, Nav2 gerektirenler SORUN 18 çözülünce.
 
 **Diğer:** hata yönetimi, README, mimari diyagramı, `NOTLAR.md` → Word,
 demo videosu, sunum.
+
+### Sonuç 4 — Tilt vs sabit kamera baseline'ı (25 Ağustos 2026, TAMAMLANDI, canlı test)
+
+**Kaynak:** Yeni `coklu_raf_tarama_testi.py` (Sprint 5 Madde 5'teki
+`gz service set_pose` teleport yöntemiyle AYNI) — 9 rafın her biri
+sırayla teleport edilip gerçek `tarama_kontrol.py` subprocess olarak
+çalıştırıldı, ham veri kaydedildi. İki tur: **tilt** (`kamera_kontrol.py`
+normal çalışırken, dinamik açılandırma) ve **sabit** (`kamera_kontrol.py`
+DURDURULUP `/kamera_acisi`'na bir kerelik 0.0 yayınlanarak, tilt=0'da
+kilitlenmiş — §7'deki "sabit kamera saklanmalı" notunun operasyonel
+karşılığı, ayrı bir kod dalı gerekmedi). Ham veriler: `araclar/coklu_raf_ham_veri_{tilt,sabit}.json`.
+Kat-bazlı doğruluk ve konumlandırma hatası, bu ham veriden ayrı
+(ROS'suz) bir script ile hesaplandı: `araclar/coklu_raf_analiz.py`
+(çıktı: `araclar/coklu_raf_analiz_sonuclari.json`) — `konum_donusum.py`
+(bkz. Adım 1, izole geometri testi) kullanılarak.
+
+**Yan bulgu (bu test sırasında bulunan, düzeltilen gerçek bug):**
+`coklu_raf_tarama_testi.py`'nin ilk hâli, her raf sonrası
+`tarama_kontrol` subprocess'ini `terminate()` ile sonlandırmaya
+çalışıyordu ama `ros2 run` kendi içinde ayrı bir TORUN süreç açtığı için
+(`ros2run.api.run_executable` kaynağı doğrulandı: `subprocess.Popen`,
+exec-replace değil) sadece `ros2 run` sarmalayıcısı ölüyor, asıl node
+YETİM kalıp arka planda çalışmaya devam ediyordu (canlı testte
+`ros2 node list` ile 9 yetim `/tarama_kontrol` node'u doğrulandı).
+Düzeltme: `start_new_session=True` ile ayrı bir süreç grubu açılıp
+temizlikte `os.killpg()` ile grubun tamamı sonlandırılıyor artık —
+9 raflık tam turda sıfır yetim ile doğrulandı.
+
+**Tablo A — Sabit kamera turu, raf bazında:**
+
+| Raf | Süre | Doğruluk | Eşleşen/Toplam | Fazla | Kapsam dışı |
+|---|---|---|---|---|---|
+| A1 | 44.6s | 0.727 | 8/11 | 3 | 0 |
+| A2 | 44.9s | 0.700 | 7/10 | 2 | 0 |
+| A3 | 44.6s | 0.750 | 9/12 | 1 | 0 |
+| B1 | 44.7s | 0.692 | 9/13 | 3 | 3 |
+| B2 | 45.0s | 0.750 | 6/8 | 3 | 1 |
+| B3 | 44.7s | 0.700 | 7/10 | 2 | 3 |
+| C1 | 44.7s | 0.800 | 8/10 | 1 | 0 |
+| C2 | 44.7s | 0.615 | 8/13 | 2 | 0 |
+| C3 | 44.7s | 0.556 | 5/9 | 2 | 0 |
+
+**Tablo B — Tilt vs sabit karşılaştırma özeti:**
+
+| Metrik | Tilt (dinamik) | Sabit |
+|---|---|---|
+| Ort. tarama süresi | 24.7s | 44.7s |
+| Makro doğruluk (9 raf eşit ağırlık) | 1.000 | 0.699 |
+| Mikro doğruluk (havuzlanmış) | 1.000 | 0.698 |
+| Eşleşen/Toplam (havuzlanmış) | 96/96 | 67/96 |
+
+**Tablo C — Kat-bazlı doğruluk (9 raf toplamı):**
+
+| Kat | Tilt | Sabit |
+|---|---|---|
+| 1 | 35/35 = 1.000 | 33/35 = 0.943 |
+| 2 | 34/34 = 1.000 | 34/34 = 1.000 |
+| 3 | 27/27 = 1.000 | **0/27 = 0.000** |
+
+> **En güçlü bulgu: sabit kamera turunda 3. kat kutularının HİÇBİRİ
+> tespit edilemedi (0/27).** Kamera açısı 0.0'da sabitlenince 3. katın
+> hiçbir kutusu görüş alanına girmiyor — 2. kat ise şans eseri o sabit
+> açının FOV'una denk geldiği için %100 kalmış, ama bu güvenilir bir
+> davranış değil (raf/kat geometrisine bağlı bir tesadüf). Bu tek
+> rakam, dinamik tilt kamera açılandırmasının neden gerekli olduğunun
+> en somut kanıtı.
+
+**Tablo D — Konumlandırma hatası (Öklid mesafesi, m):**
+
+| | Tilt | Sabit |
+|---|---|---|
+| n (eşleşen çift sayısı) | 96 | 67 |
+| Ortalama | 0.179 | 0.235 |
+| Medyan | 0.155 | 0.225 |
+| Std | 0.048 | 0.288 |
+| Min | 0.117 | 0.117 |
+| Maks | 0.260 | 2.245 (aykırı değer) |
+
+Tilt turu sıkı ve tutarlı bir dağılım veriyor; sabit tur hem daha
+yüksek ortalama hem de ~6× daha gürültülü (std) — 1. katta 2.245 m'lik
+bir aykırı değer var, muhtemelen sabit açının o rafta beklenmedik bir
+kısmı görmesinden kaynaklanıyor.
+
+**Bilinen sınır — greedy konum eşleştirmesi (gizlenmedi):**
+envanter.json'daki (raf, kat) kombinasyonlarının %78'inde (21/27) AYNI
+renkten 2+ gerçek kutu var (24 (raf,kat,renk) grubunda tekrar var).
+`coklu_raf_analiz.py`, hangi tespitin hangi gerçek kutuya ait olduğunu
+KESİN olarak bilemiyor — aynı (raf,kat,renk) içindeki tüm olası
+(tespit, gerçek kutu) çiftlerini dünya-mesafesine göre sıralayıp
+GREEDY EN YAKIN eşleştirme yapıyor. Bu, DOĞRU eşleştirmeyi garanti
+ETMEZ, sadece en mantıklı varsayımla bir tahmin sunar. Eşleşen ÇİFT
+SAYISI (dolayısıyla kat-bazlı doğruluk tablosu) bundan ETKİLENMİYOR —
+`tarama_kontrol.py`'nin kendi renk-bazlı sayımıyla birebir aynı olduğu
+her (raf,kat) için ayrıca doğrulandı (tutarlılık kontrolü, script
+çıktısında `[OK]`). Etkilenen SADECE konumlandırma hatası tablosudur
+(Tablo D) — belirsiz gruplardaki bireysel hata değerleri gerçek eşleşim
+yerine en yakın varsayıma dayanıyor. Ayrıca `konum_donusum.py`'nin
+kendi belgelediği "mesafe = sabit standoff mesafesi (canlı LIDAR değil)"
+varsayımı da geçerli — Tablo D'deki hatanın bir kısmı bu ÖNCEDEN
+BİLİNEN sapmadan geliyor, yeni bir hata değil.
 
 ## Sprint 7 (opsiyonel) — Bonus ☐
 
