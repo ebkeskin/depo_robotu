@@ -1103,7 +1103,7 @@ ve önünde başka bir engel olmadığında geçerli; gerçek bir çizgi uydurma
 olmadığı için yamuk duruş veya yandaki bir direk/kutu bu hatayı çok daha
 büyütebilir (bkz. yukarıdaki BİLİNEN SINIR notu).
 
-## Sprint 6 — Ölçüm, cilalama, sunum ☐
+## Sprint 6 — Ölçüm, cilalama, sunum 🔄 DEVAM EDİYOR (25 Ağustos 2026, 2 metrik mevcut veriyle hesaplandı)
 
 > **ÖNCELİK UYARISI (24 Ağustos 2026): Sprint 6'ya başlamadan önce (veya
 > en azından paralelde) `NOTLAR.md` SORUN 18 ele alınmalı.** SORUN 18
@@ -1151,6 +1151,73 @@ büyütebilir (bkz. yukarıdaki BİLİNEN SINIR notu).
 > ya da bu ayrım çözülene kadar metrik raporunda "kapsam dışı tespit" ayrı
 > bir sütun olarak tutulmalı (bkz. `tarama_kontrol.py`'nin `fazla_tespit`
 > alanı, mevcut kaba yaklaşım).
+
+### Sonuç 1 — Tespit precision/recall (25 Ağustos 2026, YENİ TEST YOK)
+
+**Kaynak:** §7 Sprint 2E "9 raf uçtan uca perception testi" (1. geçiş,
+23 Ağustos 2026) tablosundaki ham sayılar — yeni bir canlı tur
+gerektirmedi, sadece aritmetik. Yukarıdaki "payda tasarımı" notuna göre
+`kapsam dışı` precision paydasına **girmiyor** (o rafa geometrik olarak
+ait olamayacağı zaten biliniyor, ayrı bir hata modu — komşu raf sızıntısı);
+`fazla` (raf içi ama renk eşleşmedi) giriyor.
+
+```
+recall    = eşleşen / envanter
+precision = eşleşen / (eşleşen + fazla)
+```
+
+| Raf | Envanter | Eşleşen | Fazla | Kapsam dışı | Recall | Precision |
+|---|---|---|---|---|---|---|
+| A1 | 11 | 11 | 2 | 4 | %100.0 | %84.6 |
+| A2 | 10 | 10 | 3 | 6 | %100.0 | %76.9 |
+| A3 | 12 | 11 | 2 | 3 | %91.7 | %84.6 |
+| B1 | 13 | 13 | 4 | 7 | %100.0 | %76.5 |
+| B2 | 8 | 8 | 4 | 9 | %100.0 | %66.7 |
+| B3 | 10 | 9 | 3 | 6 | %90.0 | %75.0 |
+| C1 | 10 | 10 | 3 | 5 | %100.0 | %76.9 |
+| C2 | 13 | 13 | 2 | 6 | %100.0 | %86.7 |
+| C3 | 9 | 8 | 3 | 4 | %88.9 | %72.7 |
+
+**Ortalama (makro, 9 rafın eşit ağırlıklı ortalaması):** recall %96.7,
+precision %77.8.
+**Havuzlanmış (mikro, toplam eşleşen/toplam envanter vb.):** recall
+93/106 = %87.7, precision 93/(93+26) = %78.2.
+
+Makro ve mikro recall arasındaki fark (%96.7 vs %87.7) raf başına kutu
+sayısının değişken olmasından kaynaklanıyor (B2'nin 8 kutusu, B1'in 13
+kutusuyla makroda eşit ağırlık taşıyor) — ikisi de rapora birlikte
+konulmalı, tek başına makro ortalama yanıltıcı olur.
+
+**Yorum:** Recall yüksek (kutuların büyük çoğunluğu doğru şekilde
+bulunuyor ve doğru renkle eşleşiyor); precision'ı düşüren `fazla`
+(raf içi ama renk eşleşmeyen, kat1'de yoğunlaşan — ACIK MADDE 2,
+x=mesafe düzlem varsayımının derinlik belirsizliği) hâlâ çözülmedi.
+`kapsam dışı` sayıları (raf başına 3–9) ayrıca gösteriyor ki geniş FOV
+sızıntısı (SORUN 12) precision hesabından çıkarılmasa bile ciddi
+boyutta — bu ayrı bir iyileştirme maddesi olarak kalıyor.
+
+### Sonuç 2 — Oracle vs algı mesafe karşılaştırması (25 Ağustos 2026, YENİ TEST YOK)
+
+**Kaynak:** Sprint 5 Madde 5 sonucu (24 Ağustos 2026) — tam metodoloji
+için yukarıya bkz., burada sadece rapor için tablo tekrarlanıyor.
+
+| Raf | Oracle (m) | Algı (m) | Fark | Fark % |
+|---|---|---|---|---|
+| A1 | 1.600 | 1.651 | +0.051 | +3.2% |
+| A2 | 1.600 | 1.650 | +0.050 | +3.1% |
+| A3 | 1.600 | 1.648 | +0.048 | +3.0% |
+| B1 | 1.600 | 1.647 | +0.047 | +3.0% |
+| B2 | 1.600 | 1.651 | +0.051 | +3.2% |
+| B3 | 1.600 | 1.648 | +0.048 | +3.0% |
+| C1 | 1.600 | 1.650 | +0.050 | +3.1% |
+| C2 | 1.600 | 1.649 | +0.049 | +3.1% |
+| C3 | 1.600 | 1.652 | +0.052 | +3.2% |
+
+**Sonuç:** LIDAR-minimum mesafe, 9 rafın hepsinde tutarlı biçimde
++%3.0–%3.2 (4.7–5.2 cm) fazla tahmin ediyor — "algının maliyeti"
+sorusuna (§4.6) ilk nicel cevap. Geçerlilik sınırı için Sprint 5
+Madde 5'teki BİLİNEN SINIR notuna bakın (sadece rafa kare duruşta,
+çizgi uydurma değil).
 
 **Diğer:** hata yönetimi, README, mimari diyagramı, `NOTLAR.md` → Word,
 demo videosu, sunum.
