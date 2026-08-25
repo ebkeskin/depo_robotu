@@ -53,18 +53,75 @@ analizi için "Sonuç 3".
 
 ## Sistem mimarisi (özet)
 
-```
-Doğal dil komutu → FastAPI (llm_servis) → LLM (Groq) → yapılandırılmış JSON sorgu
-        → navigasyon_koprusu.py (ROS 2 node) → Nav2 ile hedefe otonom navigasyon
-        → rafın önünde durup kamerayı dikey tarama (Look-and-Move)
-        → renk/boyut tespiti + ışın-düzlem kesişimi ile kat ataması
-        → sonuç raporu + envanter kaydı
+Sistem, birbirinden **bağımsız iki süreç** olarak çalışıyor: ROS 2/Gazebo
+tarafı (Katman A) ve LLM servisi (Katman B). İkisi arasındaki TEK bağlantı,
+`navigasyon_koprusu.py`'nin attığı düz bir HTTP POST — bu bilinçli bir
+mimari karar (Sprint 4 "KARAR VERİLDİ": `llm_servis` ROS 2'den bağımsız
+kalmalı, kendi `pip install`'ı var, colcon zincirine dahil değil).
+
+```mermaid
+flowchart TB
+    Kullanici(["Kullanıcı — doğal dil komutu"])
+
+    subgraph KatmanA["Katman A — Simülasyon / ROS 2"]
+        direction TB
+        Kopru["navigasyon_koprusu.py<br/>(ROS 2 node)"]
+        Nav2["Nav2<br/>AMCL · costmap · controller"]
+        Gazebo[("Gazebo Harmonic<br/>depo dünyası + waffle_pi")]
+        KameraKontrol["kamera_kontrol.py"]
+        KatTespit["kat_tespit.py"]
+        KutuTespit["kutu_tespit.py"]
+        TaramaKontrol["tarama_kontrol.py<br/>(subprocess, 3 kat sırayla)"]
+        Adresler[("adres_veritabani.json /<br/>tarama_pozisyonlari.json")]
+        RobotEnvanteri[("robot_envanteri.json<br/>pasif envanter, MVP")]
+
+        Kopru -->|"5 · eylem=git/tara"| Nav2
+        Nav2 <-->|"cmd_vel / odom / scan"| Gazebo
+        Nav2 -->|"6 · hedefe ulaşıldı"| Kopru
+        Kopru -->|"7 · başlat (subprocess)"| TaramaKontrol
+        TaramaKontrol -->|"/hedef_kat"| KameraKontrol
+        KameraKontrol -->|"/kamera_acisi"| Gazebo
+        Gazebo --> KatTespit
+        Gazebo --> KutuTespit
+        KatTespit -->|"8 · /bakilan_kat (kilit)"| TaramaKontrol
+        KutuTespit -->|"8 · /tespitler"| TaramaKontrol
+        TaramaKontrol -->|"9 · /tarama_raporu"| Kopru
+        Adresler -.->|"raf konumları"| Kopru
+        RobotEnvanteri -.->|"pasif sorgu"| Kopru
+    end
+
+    subgraph KatmanB["Katman B — LLM Servisi (ROS 2'den BAĞIMSIZ, ayrı süreç)"]
+        direction TB
+        FastAPI["FastAPI (main.py)<br/>/komut endpoint"]
+        Cozumleyici["komut_cozumleyici.py<br/>sorgu ayrıştırma + eşleştirme"]
+        Saglayici["llm_saglayici.py"]
+        Groq[("Groq API")]
+        Envanter[("envanter.json<br/>ground truth")]
+
+        FastAPI --> Cozumleyici
+        Cozumleyici -->|"3"| Saglayici
+        Saglayici <--> Groq
+        Cozumleyici -->|"4 · arama/sayım eşleştirme"| Envanter
+        Cozumleyici --> FastAPI
+    end
+
+    Kullanici -->|"1 · /komut topic"| Kopru
+    Kopru ==>|"2 · HTTP POST localhost:8000/komut"| FastAPI
+    FastAPI ==>|"JSON sorgu + eşleşme sonucu"| Kopru
 ```
 
-`llm_servis` ROS 2/Gazebo'dan tamamen bağımsız bir FastAPI servisidir (kendi
-`pip install`'ı var, colcon zincirine dahil değil); `navigasyon_koprusu.py`
-ona HTTP üzerinden istek atan ROS 2 tarafındaki köprü node'udur. Daha
-detaylı bir mimari diyagramı ayrı bir dosyada olacak.
+Akış sırası: **(1)** kullanıcı komutu `/komut` topic'ine düşer →
+**(2)** `navigasyon_koprusu.py` bunu HTTP POST ile `llm_servis`'e yollar
+(iki katman arasındaki TEK bağlantı noktası) → **(3)** `llm_servis` Groq
+API'yi çağırıp yapılandırılmış JSON sorgu üretir → **(4)** arama/sayım
+sorgularında `envanter.json`'a karşı eşleştirilip sonuç üretilir →
+**(5)** köprü sonucu alır: `eylem=git` ise sadece Nav2, `eylem=tara` ise
+Nav2 + `tarama_kontrol.py` subprocess'i → **(6)** Nav2 robotu hedefe
+götürür → **(7)** `tarama_kontrol.py`, 3 katı sırayla `kamera_kontrol.py`'ye
+`/hedef_kat` ile bildirir → **(8)** `kat_tespit.py` (kilit onayı) ve
+`kutu_tespit.py` (asıl tespit) sonuçlarını üretir → **(9)**
+`tarama_kontrol.py` `/tarama_raporu`'nu köprüye döner, log/rapor olarak
+kaydedilir.
 
 ---
 
