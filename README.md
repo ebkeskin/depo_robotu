@@ -163,7 +163,7 @@ döndürülmez — bilinçli tasarım).
 
 ## Bilinen sınırlar
 
-Dürüstçe: proje bazı önemli noktalarda henüz tamamlanmadı.
+Proje bazı önemli noktalarda henüz tamamlanmadı.
 
 - **Nav2 navigasyonu robotun spawn noktası civarında sistematik olarak
   başarısız oluyor (`NOTLAR.md` SORUN 18).** **Kök sebep bulundu:** kayıtlı
