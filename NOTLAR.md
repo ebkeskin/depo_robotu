@@ -862,17 +862,40 @@ sırasında (bkz. §7 Sprint 3 madde 1) robot muhtemelen spawn/kapı bölgesine
 LIDAR ile yeterince taramadı, bu yüzden `slam_toolbox` o alanı haritaya hiç
 işlemedi — harita güneyde y=-1.21'de kesiliyor.
 
-**Düzeltme ERTELENDİ (zaman kısıtı nedeniyle).** Doğru düzeltme, haritayı
-spawn/kapı bölgesini de kapsayacak şekilde **yeniden çıkarmak** (robotu bu
-kez o bölgede de gezdirerek yeniden `slam_toolbox` haritalaması yapmak) ve
-ardından adres veritabanındaki **9 rafın konumunu yeni haritaya göre yeniden
-kalibre etmek** (`konum_yakala.py` / `haritadan_adres_cikar.py`, bkz. §7
-Sprint 3 3D) — bu, Sprint 3'ün "map frame origin'i SLAM'in başladığı ana
-bağlıdır" dersiyle tutarlı, sadece haritanın kapsama alanı bu kez yetersiz
-kalmış. Bu iş Sprint 6 sunum hazırlığıyla çakıştığı için zaman kısıtı
-nedeniyle şimdilik ertelendi; kısa vadeli geçici çözüm olarak robotu manuel
-`cmd_vel` ile haritanın kapsadığı bölgeye (y>-1.21) taşıyıp oradan Nav2
-görevi başlatmak işe yarıyor ama bu kalıcı bir çözüm değil.
+**Düzeltme DENENDİ (birden fazla SLAM turu, farklı sürüş rotalarıyla), ama
+BAŞARISIZ.** Doğru düzeltme olarak haritayı spawn/kapı bölgesini de
+kapsayacak şekilde **yeniden çıkarmak** denendi — robot bilerek spawn/kapı
+bölgesinde (y≈-5 civarı) tam turlar attırılarak, hem tur başında hem tur
+sonunda o bölgeye dönülerek `slam_toolbox` ile yeniden haritalama yapıldı.
+Birkaç deneme yapıldı, hepsi tutarlı şekilde AYNI Y-sınırında takıldı —
+hatta bir denemede kapsama alanı GERİLEDİ:
+
+| Metrik | Orijinal harita | Yeni deneme (v2) |
+|---|---|---|
+| `origin_y` | -1.21 | -1.11 (0.10 m daha kötü) |
+| Boyut (piksel) | 239×243 | 239×246 |
+| Y kapsama aralığı (gerçek dünya) | -1.21 ile 10.94 | -1.11 ile 11.19 |
+| Spawn noktasına (y=-5) olan açık | 3.79 m dışında | 3.89 m dışında |
+
+Bu, sürüş tekniğinden bağımsız görünüyor — birden fazla farklı rotayla
+denenmesine rağmen sonuç değişmedi, hatta bir denemede kapsama alanı
+küçüldü. En olası açıklama: `slam_toolbox` açık kapı/geniş boşluk
+bölgesinde (kapalı bir duvar/köşe geometrisi olmadığından) loop-closure'ı
+güvenilir şekilde kapatamıyor gibi görünüyor — bu, bir sürüş/rota hatası
+değil, algoritmik bir sınır olabilir. Denenen tüm haritalar ve türetilen
+adres/pozisyon dosyaları geri alındı (`.yedek_calisan` yedeklerinden
+`depo_haritasi.{pgm,yaml}`, `adres_veritabani.json`,
+`tarama_pozisyonlari.json` eski haline döndürüldü), proje şu an bu
+denemeden önceki bilinen-iyi duruma geri dönmüş durumda.
+
+Çözüm için farklı bir yaklaşım gerekebilir (örn. haritayı manuel
+düzenlemek — `.pgm`'de kapı bölgesini elle "bilinmiyor/boş" olarak
+işaretlemek, ya da spawn noktasını haritanın zaten güvenilir şekilde
+kapsadığı bir bölgeye taşımak) — bu, kısa vadede ele alınmayacak, ayrı
+bir araştırma konusu olarak kaydediliyor. Kısa vadeli geçici çözüm hâlâ
+geçerli: robotu manuel `cmd_vel` ile haritanın kapsadığı bölgeye
+(y>-1.21) taşıyıp oradan Nav2 görevi başlatmak işe yarıyor ama kalıcı bir
+çözüm değil.
 
 **Ayrı not: navigasyon_koprusu çift-süreç çakışması (ÇÖZÜLDÜ, bu SORUN'dan bağımsız)**
 Madde 4 test oturumunda, `navigasyon_koprusu`'yu yeniden başlatırken
